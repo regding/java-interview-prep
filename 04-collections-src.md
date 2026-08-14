@@ -1,6 +1,22 @@
+[📖 返回目录](README.md) · [⬅️ 上一章](03-concurrency.md) · [➡️ 下一章](05-mysql.md)
+
 # Java 集合框架源码深度（资深向）
 
 > 面向 10+ 年经验的资深工程师/架构师候选人。拒绝罗列 API，聚焦底层数据结构、扩容策略、并发语义边界与工程踩坑。源码分析基于 JDK 8 公开实现（JDK 8 是面试默认语境），差异处注明版本。
+
+
+
+### 📑 本章目录
+
+- [一、总览：集合体系、fail-fast 与工具类](#一总览集合体系fail-fast-与工具类)
+- [二、ArrayList / LinkedList / Vector](#二arraylist--linkedlist--vector)
+- [三、HashMap 源码（JDK 1.7 vs 1.8）](#三hashmap-源码jdk-17-vs-18)
+- [四、ConcurrentHashMap 源码（1.7 vs 1.8）](#四concurrenthashmap-源码17-vs-18)
+- [五、TreeMap 与红黑树](#五treemap-与红黑树)
+- [六、LinkedHashMap 与 LRU](#六linkedhashmap-与-lru)
+- [七、阻塞队列与无锁队列](#七阻塞队列与无锁队列)
+- [八、集合面试高频题合集](#八集合面试高频题合集)
+- [考点速查表](#考点速查表)
 
 ## 本章 TL;DR 学习要点
 
@@ -13,6 +29,7 @@
 ---
 
 ## 一、总览：集合体系、fail-fast 与工具类
+
 
 ### 1.1 集合体系图
 

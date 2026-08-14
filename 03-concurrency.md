@@ -1,3 +1,5 @@
+[📖 返回目录](README.md) · [⬅️ 上一章](02-jvm.md) · [➡️ 下一章](04-collections-src.md)
+
 # 03 · 并发编程与 JUC 源码
 
 > 适用对象：10+ 年经验的资深工程师 / 架构师候选人。本章要求「源码级理解」：AQS、线程池、ConcurrentHashMap 的关键流程要能徒手画出来，JMM 与锁升级要能讲清机制而不是背结论。
@@ -14,7 +16,24 @@
 
 ---
 
+
+
+### 📑 本章目录
+
+- [1. 线程基础与 JMM](#1-线程基础与-jmm)
+- [2. synchronized 原理：Monitor 与锁升级](#2-synchronized-原理monitor-与锁升级)
+- [3. volatile 与 CAS](#3-volatile-与-cas)
+- [4. AQS 源码深度：state、CLH 变体与模板方法](#4-aqs-源码深度stateclh-变体与模板方法)
+- [5. 锁家族：ReentrantLock / ReentrantReadWriteLock / StampedLock / Condition](#5-锁家族reentrantlock--reentrantreadwritelock--stampedlock--condition)
+- [6. 同步工具：CountDownLatch / CyclicBarrier / Semaphore / Exchanger](#6-同步工具countdownlatch--cyclicbarrier--semaphore--exchanger)
+- [7. 并发容器：ConcurrentHashMap / COW / BlockingQueue 族](#7-并发容器concurrenthashmap--cow--blockingqueue-族)
+- [8. ThreadPoolExecutor 源码：状态机、流程与调参](#8-threadpoolexecutor-源码状态机流程与调参)
+- [9. 虚拟线程与结构化并发](#9-虚拟线程与结构化并发)
+- [10. 死锁与并发 Bug 排查](#10-死锁与并发-bug-排查)
+- [11. 考点速查表](#11-考点速查表)
+
 ## 1. 线程基础与 JMM
+
 
 ### 1.1 线程状态机
 

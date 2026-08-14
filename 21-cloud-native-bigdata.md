@@ -1,3 +1,5 @@
+[📖 返回目录](README.md) · [⬅️ 上一章](20-system-design-cases-2.md) · [➡️ 下一章](22-engineering-practice.md)
+
 # 21 · 云原生与大数据（资深向）
 
 > 适用对象：10+ 年经验的资深工程师 / 架构师候选人。本章覆盖：Docker 镜像分层与容器原理、Kubernetes 架构与控制器模式、K8s 高可用与运维（HPA/滚动更新/PV/PVC/网络）、Service Mesh 与 Istio 流量治理、大数据生态（Hadoop/Spark/Flink 架构与选型）、Java + AI 新趋势（LangChain4j/RAG/向量数据库/MCP）。面试落点：云原生面试不问「命令怎么敲」，问「架构为什么这么设计、故障怎么排查、组件怎么选型」——本章按「原理 → 演进 → 权衡 → 踩坑」组织，拒绝 API 罗列。
@@ -12,7 +14,20 @@
 
 ---
 
+
+
+### 📑 本章目录
+
+- [1. Docker 核心](#1-docker-核心)
+- [2. Kubernetes 架构](#2-kubernetes-架构)
+- [3. K8s 高可用与运维](#3-k8s-高可用与运维)
+- [4. Service Mesh 与 Istio](#4-service-mesh-与-istio)
+- [5. 大数据生态](#5-大数据生态)
+- [6. Java + AI 新趋势](#6-java--ai-新趋势)
+- [考点速查表](#考点速查表)
+
 ## 1. Docker 核心
+
 
 ### 1.1 镜像分层与联合文件系统
 
