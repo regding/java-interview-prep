@@ -72,7 +72,7 @@
 | 文件 | 内容 |
 |---|---|
 | [25-interview-question-bank.md](25-interview-question-bank.md) | 高频真题速查（阿里/腾讯/字节/美团/京东/拼多多/快手/滴滴/华为） |
-| [26-github-repos-books.md](26-github-repos-books.md) | 优质 GitHub 仓库（含用户 star 整合）+ 经典书单 + 学习路线图 |
+| [26-github-repos-books.md](26-github-repos-books.md) | 优质 GitHub 仓库（精选）+ 经典书单 + 学习路线图 |
 
 ## 三、学习路线图（资深向）
 

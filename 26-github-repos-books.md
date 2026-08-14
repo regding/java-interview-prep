@@ -1,8 +1,8 @@
 [📖 返回目录](README.md) · [⬅️ 上一章](25-interview-question-bank.md)
 
-# 26. 优质资源整合：GitHub 仓库（含用户 star 清单）+ 经典书单 + 学习路线
+# 26. 优质资源整合：GitHub 精选仓库 + 经典书单 + 学习路线
 
-> 本章整合了 **regding 账号 star 的 295 个仓库** 中与 Java 后端/分布式/系统设计/面试直接相关的部分，
+> 本章精选 GitHub 上与 Java 后端/分布式/系统设计/面试直接相关的优质仓库，
 > 按「面试复习价值」分类整理；另附经典书单与刷题路线。标注 ⭐ 的为高优先级。
 
 ---
@@ -11,17 +11,17 @@
 
 ### 📑 本章目录
 
-- [一、面试/知识体系类（star 整合）](#一面试知识体系类star-整合)
-- [二、Java 语言/JVM/源码类（star 整合）](#二java-语言jvm源码类star-整合)
-- [三、数据库/中间件源码类（star 整合）](#三数据库中间件源码类star-整合)
-- [四、安全/认证授权类（star 整合）](#四安全认证授权类star-整合)
-- [五、云原生/大数据/新趋势类（star 整合）](#五云原生大数据新趋势类star-整合)
+- [一、面试/知识体系类（精选）](#一面试知识体系类star-整合)
+- [二、Java 语言/JVM/源码类（精选）](#二java-语言jvm源码类star-整合)
+- [三、数据库/中间件源码类（精选）](#三数据库中间件源码类star-整合)
+- [四、安全/认证授权类（精选）](#四安全认证授权类star-整合)
+- [五、云原生/大数据/新趋势类（精选）](#五云原生大数据新趋势类star-整合)
 - [六、网络/系统底层类（star 整合，进阶选修）](#六网络系统底层类star-整合进阶选修)
 - [七、经典书单（按章节配套）](#七经典书单按章节配套)
 - [八、刷题与练习路线](#八刷题与练习路线)
 - [九、其他已 star 但非主线（一句话归类）](#九其他已-star-但非主线一句话归类)
 
-## 一、面试/知识体系类（star 整合）
+## 一、面试/知识体系类（精选）
 
 | 仓库 | 说明 | 建议用法 |
 |---|---|---|
@@ -44,7 +44,7 @@
 | nilbuild/developer-roadmap | 交互式开发者路线图 | 全景图 |
 | codecrafters-io/build-your-own-x | 从零实现数据库/Redis/OS 等 | 深度理解中间件原理 |
 
-## 二、Java 语言/JVM/源码类（star 整合）
+## 二、Java 语言/JVM/源码类（精选）
 
 | 仓库 | 说明 | 建议用法 |
 |---|---|---|
@@ -70,7 +70,7 @@
 | RxJava / vert.x / akka-core | 响应式与 Actor | 响应式编程对比 |
 | oracle/graal | GraalVM 原生镜像 | 配合 14 章 Boot3 |
 
-## 三、数据库/中间件源码类（star 整合）
+## 三、数据库/中间件源码类（精选）
 
 | 仓库 | 说明 | 建议用法 |
 |---|---|---|
@@ -99,18 +99,18 @@
 | lindzh/hasting | Java NIO 分布式跨语言服务框架 | RPC 演进参考 |
 | apache/mesos | 分布式资源管理 | 容器调度史 |
 
-## 四、安全/认证授权类（star 整合）
+## 四、安全/认证授权类（精选）
 
 | 仓库 | 说明 | 建议用法 |
 |---|---|---|
 | ⭐ apache/shiro | Shiro 安全框架 | 配合 15 章认证授权 |
-| ⭐ **regding/shiro-redis** | **你的项目**：Shiro 默认只支持 ehcache/ConcurrentHashMap 会话，本项目实现 Redis 支持 | 面试「项目经验」可直接用：分布式会话/权限缓存改造 |
+| ⭐ shiro-redis | 开源实践项目：Shiro 默认只支持 ehcache/ConcurrentHashMap 会话，该项目实现 Redis 会话/缓存支持 | 面试「项目经验」参考：分布式会话/权限缓存改造 |
 | apereo/cas + java-cas-client | CAS 单点登录 | SSO 原理 |
 | scribejava/scribejava | 简单 OAuth 库 | OAuth2 流程 |
 | tink-crypto/tink | 多语言密码学库 | 加密方案选型 |
 | FeeiCN/Cobra | 源代码安全审计 | 安全工程 |
 
-## 五、云原生/大数据/新趋势类（star 整合）
+## 五、云原生/大数据/新趋势类（精选）
 
 | 仓库 | 说明 | 建议用法 |
 |---|---|---|
@@ -131,7 +131,7 @@
 
 ## 六、网络/系统底层类（star 整合，进阶选修）
 
-zhiyong0804/net_io（IO 模型详解）、grpc/grpc-go、antirez/sds、jamesroutley/write-a-hash-table、petewarden/c_hashmap、cstack/db_tutorial、libuv/libuv（异步 I/O）、tinyhttpd（500 行 HTTP Server）、the-super-tiny-compiler（最小编译器）、rui314/9cc（C 编译器）、cfenollosa/os-tutorial（从零写 OS）、LearningOS/rust-based-os-comp2023、qemu/qemu、learn-kvm（你的仓库：QEMU/KVM 学习笔记）、torvalds/linux、git/git、curl/curl、nginx/nginx。
+zhiyong0804/net_io（IO 模型详解）、grpc/grpc-go、antirez/sds、jamesroutley/write-a-hash-table、petewarden/c_hashmap、cstack/db_tutorial、libuv/libuv（异步 I/O）、tinyhttpd（500 行 HTTP Server）、the-super-tiny-compiler（最小编译器）、rui314/9cc（C 编译器）、cfenollosa/os-tutorial（从零写 OS）、LearningOS/rust-based-os-comp2023、qemu/qemu、learn-kvm（QEMU/KVM 学习笔记）、torvalds/linux、git/git、curl/curl、nginx/nginx。
 
 > 这些不是面试主线，但「从零写一个 XX」的仓库是资深面试官最喜欢的深度话题来源，
 > 挑 1~2 个精读（如 Tinyhttpd / write-a-hash-table / db_tutorial），面试时能讲「自己读过源码」的底层细节非常加分。
@@ -184,9 +184,9 @@ zhiyong0804/net_io（IO 模型详解）、grpc/grpc-go、antirez/sds、jamesrout
 3. **系统设计**：每周 1 题，按 18 章框架闭卷画图 + 口述 20 分钟，用 donnemartin/system-design-primer 对答案。
 4. **面经**：牛客网 Java 面经 + 25 章真题速查滚动复习。
 
-## 九、其他已 star 但非主线（一句话归类）
+## 九、其他优质仓库（一句话归类）
 
-- AI/Agent 类（langchain、opencode、superpowers、dify、LangChain4j、happy-llm、R1、JARVIS、alpaca）：AI 工程化趋势，见 21 章「Java + AI」小节，也可作为面试「技术视野」话题。
+- AI/Agent 类（langchain、opencode、superpowers、dify、LangChain4j、happy-llm、DeepSeek-R1、JARVIS、alpaca）：AI 工程化趋势，见 21 章「Java + AI」小节，也可作为面试「技术视野」话题。
 - 系统/工具类（vim、nvim-config、ohmyzsh、linux、qemu、FFmpeg、vcpkg、git、curl）：工程效率。
 - C/C++/编译器/OS 类（9cc、mal、db_tutorial、os-tutorial、linux、torvalds/linux、rust、racket、godot）：底层兴趣，深度话题素材。
 - 其他（free-for-dev、howto-make-more-money、programmer-job-blacklist、996.ICU、run 润学）：职业与合规话题，面试「为什么离职」可参考但谨慎使用。
