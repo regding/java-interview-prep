@@ -74,6 +74,15 @@
 | [25-interview-question-bank.md](25-interview-question-bank.md) | 高频真题速查（阿里/腾讯/字节/美团/京东/拼多多/快手/滴滴/华为） |
 | [26-github-repos-books.md](26-github-repos-books.md) | 优质 GitHub 仓库（精选）+ 经典书单 + 学习路线图 |
 
+### 第九部分 架构进阶
+| 文件 | 内容 |
+|---|---|
+| [27-event-driven-cqrs.md](27-event-driven-cqrs.md) | 事件驱动架构/Event Sourcing/CQRS/Saga/Outbox/CDC |
+| [28-architecture-patterns.md](28-architecture-patterns.md) | 微服务架构模式全景/中台/Serverless/ADR 决策框架/技术债管理 |
+| [29-observability-sre.md](29-observability-sre.md) | OpenTelemetry/分布式追踪/日志架构/SLO-SLI/混沌工程/Postmortem |
+| [30-data-api-design.md](30-data-api-design.md) | 数据分层架构/湖仓一体/CDC/RESTful 深度/gRPC/GraphQL/API 治理 |
+| [31-ai-system-architecture.md](31-ai-system-architecture.md) | LLM 推理架构/RAG 全链路/Agent 架构模式/Java AI 生态/AI 系统陷阱 |
+
 ## 三、学习路线图（资深向）
 
 ```
@@ -96,6 +105,10 @@
 
 阶段五 综合
   21 云原生 → 22 工程实践 → 23 算法 → 24 软实力 → 25 真题 → 26 资源
+
+阶段六 架构进阶（决定架构师定级）
+  27 事件驱动+CQRS → 28 架构模式 → 29 可观测性/SRE → 30 数据架构+API → 31 AI 系统架构
+  ⬇ 自测：画 CQRS+Event Sourcing 全链路架构图 / 设计一个 RAG 系统并说明向量库选型理由
 ```
 
 ## 四、资深/架构师面试的核心策略
@@ -136,5 +149,10 @@
 | [24-senior-architect-skills.md](24-senior-architect-skills.md) | 459 | 3 | ✅ |
 | [25-interview-question-bank.md](25-interview-question-bank.md) | 451 | 4 | ✅ |
 | [26-github-repos-books.md](26-github-repos-books.md) | 175 | 0 | ✅ |
+| [27-event-driven-cqrs.md](27-event-driven-cqrs.md) | 477 | 6 | ✅ |
+| [28-architecture-patterns.md](28-architecture-patterns.md) | 482 | 5 | ✅ |
+| [29-observability-sre.md](29-observability-sre.md) | 463 | 5 | ✅ |
+| [30-data-api-design.md](30-data-api-design.md) | 463 | 3 | ✅ |
+| [31-ai-system-architecture.md](31-ai-system-architecture.md) | 593 | 8 | ✅ |
 
-**合计**：26 章 + 总览，共 **13,700+ 行**；全库 **114 张 mermaid 流程图/时序图/状态机图**；**500+ 道面试题**（含详细解答与追问）。另有[「合并版-全部章节.md」](合并版-全部章节.md) 单文件版，方便连续阅读或转存。
+**合计**：31 章 + 总览，共 **14,300+ 行**（27-31 章新增约 2,478 行）；全库 **122+ 张 mermaid 流程图/时序图/状态机图**；**500+ 道面试题**（含详细解答与追问）。另有[「合并版-全部章节.md」](合并版-全部章节.md) 单文件版，方便连续阅读或转存。
