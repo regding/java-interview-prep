@@ -199,12 +199,12 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    A[用户查询] --> B[Dense Retrieval<br/>向量相似度]
-    A --> C[Sparse Retrieval<br/>BM25/关键词]
-    B --> D[融合排序<br/>RRF / 加权]
+    A[用户查询] --> B[Dense Retrieval<br>向量相似度]
+    A --> C[Sparse Retrieval<br>BM25/关键词]
+    B --> D[融合排序<br>RRF / 加权]
     C --> D
     D --> E[Top-K 结果]
-    E --> F[Reranker<br/>Cross-Encoder]
+    E --> F[Reranker<br>Cross-Encoder]
     F --> G[最终结果]
     style A fill:#1a1a2e,stroke:#0f3460,color:#e0e0e0
     style D fill:#1a1a2e,stroke:#533483,color:#e0e0e0
@@ -250,8 +250,8 @@ Agent = **LLM（推理引擎）+ Tools（外部能力）+ Memory（记忆系统�
 flowchart TB
     subgraph Agent["Agent 核心"]
         LLM[LLM 推理引擎]
-        PL[Planning<br/>任务规划]
-        MEM[Memory<br/>短期/长期/情景记忆]
+        PL[Planning<br>任务规划]
+        MEM[Memory<br>短期/长期/情景记忆]
     end
     subgraph Tools["外部工具"]
         T1[搜索引擎]
@@ -537,9 +537,9 @@ AI 系统的可观测性与传统系统有本质区别——**需要监控 LLM �
 ```mermaid
 flowchart TB
     A[AI 系统设计] --> B{查询复杂度?}
-    B -->|简单| C[直接回答<br/>便宜模型]
-    B -->|中等| D[RAG 增强<br/>中等模型]
-    B -->|复杂| E[Agent 编排<br/>强模型]
+    B -->|简单| C[直接回答<br>便宜模型]
+    B -->|中等| D[RAG 增强<br>中等模型]
+    B -->|复杂| E[Agent 编排<br>强模型]
     C --> F[监控 Token]
     D --> G[监控质量]
     E --> H[监控工具调用]
