@@ -44,16 +44,16 @@
 
 ```mermaid
 flowchart TD
-    A[可观测性] --> B[Metrics 指标]
-    A --> C[Logs 日志]
-    A --> D[Traces 追踪]
-    B --> B1[时间序列数值]
-    B --> B2[聚合/统计/趋势]
-    C --> C1[离散事件记录]
-    C --> C2[结构化/非结构化]
-    D --> D1[请求完整链路]
-    D --> D2[跨服务调用关系]
-    B & C & D -.->|Trace ID 关联| E[统一可观测性平台]
+    A["可观测性"] --> B["Metrics 指标"]
+    A --> C["Logs 日志"]
+    A --> D["Traces 追踪"]
+    B --> B1["时间序列数值"]
+    B --> B2["聚合/统计/趋势"]
+    C --> C1["离散事件记录"]
+    C --> C2["结构化/非结构化"]
+    D --> D1["请求完整链路"]
+    D --> D2["跨服务调用关系"]
+    B & C & D -.->|Trace ID 关联| E["统一可观测性平台"]
 ```
 
 > 图示：可观测性三大支柱与关联
@@ -82,11 +82,11 @@ OpenTelemetry（OTel）是 CNCF 的可观测性标准项目，提供**厂商无�
 
 ```mermaid
 flowchart LR
-    A[应用] -->|OTel SDK| B[OTel Collector]
+    A["应用"] -->|OTel SDK| B[OTel Collector]
     B -->|导出| C[Prometheus v3.14]
     B -->|导出| D[Jaeger]
     B -->|导出| E[Loki v3.7]
-    B -->|导出| F[商业 APM]
+    B -->|导出| F["商业 APM"]
 ```
 
 > 图示：OpenTelemetry Collector 架构
@@ -219,10 +219,10 @@ log.atError()
 
 ```mermaid
 flowchart LR
-    A[应用] -->|/metrics| B[Prometheus]
+    A["应用"] -->|/metrics| B[Prometheus]
     B -->|查询| C[Grafana]
     B -->|告警| D[Alertmanager]
-    D --> E[钉钉/飞书/Slack]
+    D --> E["钉钉/飞书/Slack"]
     D --> F[PagerDuty]
 ```
 
@@ -278,12 +278,12 @@ histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
 
 ```mermaid
 flowchart TD
-    A[Error Budget 充足] --> B[允许激进变更]
-    A --> C[可以发布新功能]
-    D[Error Budget 消耗过半] --> E[限制高风险变更]
-    D --> F[优先修复可靠性问题]
-    G[Error Budget 耗尽] --> H[冻结所有变更]
-    G --> I[全力修复稳定性]
+    A["Error Budget 充足"] --> B["允许激进变更"]
+    A --> C["可以发布新功能"]
+    D["Error Budget 消耗过半"] --> E["限制高风险变更"]
+    D --> F["优先修复可靠性问题"]
+    G["Error Budget 耗尽"] --> H["冻结所有变更"]
+    G --> I["全力修复稳定性"]
 ```
 
 > 图示：Error Budget 驱动的工程决策
@@ -350,15 +350,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[告警触发] --> B[值班工程师响应]
+    A["告警触发"] --> B["值班工程师响应"]
     B --> C{严重程度}
-    C -->|P0/P1| D[成立 War Room]
-    C -->|P2/P3| E[工作时间处理]
-    D --> F[止血: 回滚/降级/限流]
-    F --> G[根因分析]
-    G --> H[修复上线]
-    H --> I[Postmortem 复盘]
-    I --> J[Action Items 闭环]
+    C -->|P0/P1| D["成立 War Room"]
+    C -->|P2/P3| E["工作时间处理"]
+    D --> F["止血: 回滚/降级/限流"]
+    F --> G["根因分析"]
+    G --> H["修复上线"]
+    H --> I["Postmortem 复盘"]
+    I --> J["Action Items 闭环"]
 ```
 
 > 图示：故障响应全流程

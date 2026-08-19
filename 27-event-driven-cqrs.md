@@ -35,16 +35,16 @@
 
 ```mermaid
 flowchart LR
-    subgraph 传统 CRUD
-        A[客户端] -->|请求| B[服务]
+    subgraph "传统 CRUD"
+        A["客户端"] -->|请求| B["服务"]
         B -->|响应| A
         B -->|同步写| C[(DB)]
     end
-    subgraph 事件驱动
-        D[生产者] -->|发布事件| E[Event Bus]
-        E -->|异步分发| F[消费者A]
-        E -->|异步分发| G[消费者B]
-        E -->|异步分发| H[消费者C]
+    subgraph "事件驱动"
+        D["生产者"] -->|发布事件| E[Event Bus]
+        E -->|异步分发| F["消费者A"]
+        E -->|异步分发| G["消费者B"]
+        E -->|异步分发| H["消费者C"]
     end
 ```
 
@@ -102,12 +102,12 @@ Event Sourcing 的核心思想：**不存储实体的当前状态，而是存储
 
 ```mermaid
 flowchart TD
-    A[OrderCreated 事件] --> B[ItemAdded 事件]
-    B --> C[CouponApplied 事件]
-    C --> D[OrderPaid 事件]
-    D --> E[当前状态: 已支付+2件商品+已用优惠券]
+    A["OrderCreated 事件"] --> B["ItemAdded 事件"]
+    B --> C["CouponApplied 事件"]
+    C --> D["OrderPaid 事件"]
+    D --> E["当前状态: 已支付+2件商品+已用优惠券"]
     E -.->|快照点| F[Snapshot #5]
-    F -.->|从快照恢复| G[只需回放快照后的事件]
+    F -.->|从快照恢复| G["只需回放快照后的事件"]
 ```
 
 > 图示：Event Sourcing 状态推导与快照机制
@@ -173,13 +173,13 @@ CQRS（Command Query Responsibility Segregation）把系统的「写操作」（
 
 ```mermaid
 flowchart LR
-    subgraph 写侧 Write Model
-        A[Command] --> B[领域模型]
+    subgraph "写侧 Write Model"
+        A[Command] --> B["领域模型"]
         B --> C[(Write DB)]
         C -->|发布事件| D[Event Bus]
     end
-    subgraph 读侧 Read Model
-        D -->|消费事件| E[投影器]
+    subgraph "读侧 Read Model"
+        D -->|消费事件| E["投影器"]
         E --> F[(Read DB / ES / Redis)]
         G[Query] --> F
     end
@@ -287,14 +287,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[业务操作] --> B[写业务表]
+    A["业务操作"] --> B["写业务表"]
     B --> C{发 MQ 消息}
-    C -->|成功| D[完成]
-    C -->|失败| E[事件丢失!]
-    B -.->|原子操作| F[写 Outbox 表]
-    F --> G[轮询/CDC 读 Outbox]
-    G --> H[发到 MQ]
-    H --> I[标记 Outbox 已发送]
+    C -->|成功| D["完成"]
+    C -->|失败| E["事件丢失!"]
+    B -.->|原子操作| F["写 Outbox 表"]
+    F --> G["轮询/CDC 读 Outbox"]
+    G --> H["发到 MQ"]
+    H --> I["标记 Outbox 已发送"]
 ```
 
 > 图示：Transactional Outbox 模式
@@ -347,12 +347,12 @@ CDC（Change Data Capture）通过监听数据库的变更日志（binlog/WAL）
 
 ```mermaid
 flowchart LR
-    A[业务服务] -->|写入| B[(MySQL)]
+    A["业务服务"] -->|写入| B[(MySQL)]
     B -->|binlog| C[Debezium/Canal]
     C -->|Kafka Connect| D[Kafka]
-    D --> E[ES 索引]
-    D --> F[数据仓库]
-    D --> G[缓存更新]
+    D --> E["ES 索引"]
+    D --> F["数据仓库"]
+    D --> G["缓存更新"]
 ```
 
 > 图示：CDC + Kafka 数据同步架构

@@ -34,11 +34,11 @@
 
 ```mermaid
 flowchart TD
-    A[数据源: MySQL/日志/API] --> B[ODS 原始层]
-    B --> C[DWD 明细层]
-    C --> D[DWS 汇总层]
-    D --> E[ADS 应用层]
-    E --> F[报表/API/数据产品]
+    A["数据源: MySQL/日志/API"] --> B["ODS 原始层"]
+    B --> C["DWD 明细层"]
+    C --> D["DWS 汇总层"]
+    D --> E["ADS 应用层"]
+    E --> F["报表/API/数据产品"]
     B -.->|ETL 清洗| C
     C -.->|聚合/维度关联| D
     D -.->|指标计算| E
@@ -114,12 +114,12 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A[(MySQL 业务库)] -->|binlog| B[Debezium/Canal]
+    A["(MySQL 业务库)"] -->|binlog| B[Debezium/Canal]
     B --> C[Kafka]
-    C --> D[(ES 搜索)]
-    C --> E[(ClickHouse 分析)]
-    C --> F[(Redis 缓存)]
-    C --> G[(数据仓库 ODS)]
+    C --> D["(ES 搜索)"]
+    C --> E["(ClickHouse 分析)"]
+    C --> F["(Redis 缓存)"]
+    C --> G["(数据仓库 ODS)"]
 ```
 
 > 图示：CDC 驱动的数据同步架构

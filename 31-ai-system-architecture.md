@@ -34,12 +34,12 @@ Transformer 的自回归生成（Autoregressive Generation）本质上是**逐 t
 ```mermaid
 flowchart LR
     subgraph Prefill["Prefill 阶段（并行）"]
-        A[输入 Tokens] --> B[Attention 计算]
-        B --> C[KV Cache 缓存]
+        A["输入 Tokens"] --> B["Attention 计算"]
+        B --> C["KV Cache 缓存"]
     end
     subgraph Decode["Decode 阶段（逐 token）"]
-        D[新 Token 输入] --> E[与 KV Cache 做 Attention]
-        E --> F[输出新 Token]
+        D["新 Token 输入"] --> E["与 KV Cache 做 Attention"]
+        E --> F["输出新 Token"]
         F -->|自回归| D
     end
     C -->|KV Cache| E
@@ -82,13 +82,13 @@ flowchart TB
         A[Web/App/API]
     end
     subgraph Gateway["AI Gateway"]
-        B[路由] --> C[负载均衡]
-        C --> D[降级回退]
+        B["路由"] --> C["负载均衡"]
+        C --> D["降级回退"]
     end
     subgraph Serving["推理服务集群"]
-        E[vLLM 实例 1]
-        F[vLLM 实例 2]
-        G[Triton 实例]
+        E["vLLM 实例 1"]
+        F["vLLM 实例 2"]
+        G["Triton 实例"]
     end
     subgraph ModelStore["模型存储"]
         H[HuggingFace Hub]
@@ -136,18 +136,18 @@ RAG（Retrieval-Augmented Generation）是解决 LLM **知识时效性**和**幻
 
 ```mermaid
 flowchart LR
-    subgraph 离线索引
-        A[原始文档] --> B[Chunking]
+    subgraph "离线索引"
+        A["原始文档"] --> B[Chunking]
         B --> C[Embedding]
-        C --> D[(向量数据库)]
+        C --> D["(向量数据库)"]
     end
-    subgraph 在线查询
-        E[用户查询] --> F[Query 理解]
-        F --> G[检索 Dense + Sparse]
+    subgraph "在线查询"
+        E["用户查询"] --> F["Query 理解"]
+        F --> G["检索 Dense + Sparse"]
         G --> H[Reranking]
-        H --> I[上下文组装]
-        I --> J[LLM 生成]
-        J --> K[输出 + 引用]
+        H --> I["上下文组装"]
+        I --> J["LLM 生成"]
+        J --> K["输出 + 引用"]
     end
     D -->|Top-K| G
     style 离线索引 fill:#1a1a2e,stroke:#16c79a,color:#e0e0e0
@@ -199,13 +199,13 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    A[用户查询] --> B[Dense Retrieval<br>向量相似度]
-    A --> C[Sparse Retrieval<br>BM25/关键词]
-    B --> D[融合排序<br>RRF / 加权]
+    A["用户查询"] --> B["Dense Retrieval<br>向量相似度"]
+    A --> C["Sparse Retrieval<br>BM25/关键词"]
+    B --> D["融合排序<br>RRF / 加权"]
     C --> D
-    D --> E[Top-K 结果]
+    D --> E["Top-K 结果"]
     E --> F[Reranker<br>Cross-Encoder]
-    F --> G[最终结果]
+    F --> G["最终结果"]
     style A fill:#1a1a2e,stroke:#0f3460,color:#e0e0e0
     style D fill:#1a1a2e,stroke:#533483,color:#e0e0e0
     style F fill:#1a1a2e,stroke:#e94560,color:#e0e0e0
@@ -249,20 +249,20 @@ Agent = **LLM（推理引擎）+ Tools（外部能力）+ Memory（记忆系统�
 ```mermaid
 flowchart TB
     subgraph Agent["Agent 核心"]
-        LLM[LLM 推理引擎]
-        PL[Planning<br>任务规划]
-        MEM[Memory<br>短期/长期/情景记忆]
+        LLM["LLM 推理引擎"]
+        PL["Planning<br>任务规划"]
+        MEM["Memory<br>短期/长期/情景记忆"]
     end
     subgraph Tools["外部工具"]
-        T1[搜索引擎]
-        T2[数据库查询]
-        T3[代码执行]
-        T4[API 调用]
+        T1["搜索引擎"]
+        T2["数据库查询"]
+        T3["代码执行"]
+        T4["API 调用"]
     end
     subgraph Environment["环境"]
-        USER[用户输入]
-        RET[检索结果]
-        FEED[执行反馈]
+        USER["用户输入"]
+        RET["检索结果"]
+        FEED["执行反馈"]
     end
     USER --> LLM
     LLM --> PL
@@ -449,20 +449,20 @@ class QAService {
 ```mermaid
 flowchart LR
     subgraph Gateway["AI Gateway"]
-        A[路由] --> B[负载均衡]
-        B --> C[降级回退]
-        C --> D[成本控制]
+        A["路由"] --> B["负载均衡"]
+        B --> C["降级回退"]
+        C --> D["成本控制"]
     end
     subgraph Providers["模型提供商"]
         E[GPT-4o]
         F[Claude]
-        G[本地模型]
-        H[开源模型]
+        G["本地模型"]
+        H["开源模型"]
     end
     subgraph Observ["可观测性"]
-        I[Token 统计]
-        J[延迟监控]
-        K[质量评估]
+        I["Token 统计"]
+        J["延迟监控"]
+        K["质量评估"]
     end
     Gateway --> Providers
     Gateway --> Observ
@@ -536,19 +536,19 @@ AI 系统的可观测性与传统系统有本质区别——**需要监控 LLM �
 
 ```mermaid
 flowchart TB
-    A[AI 系统设计] --> B{查询复杂度?}
-    B -->|简单| C[直接回答<br>便宜模型]
-    B -->|中等| D[RAG 增强<br>中等模型]
-    B -->|复杂| E[Agent 编排<br>强模型]
-    C --> F[监控 Token]
-    D --> G[监控质量]
-    E --> H[监控工具调用]
-    F --> I[成本分析]
+    A["AI 系统设计"] --> B{查询复杂度?}
+    B -->|简单| C["直接回答<br>便宜模型"]
+    B -->|中等| D["RAG 增强<br>中等模型"]
+    B -->|复杂| E["Agent 编排<br>强模型"]
+    C --> F["监控 Token"]
+    D --> G["监控质量"]
+    E --> H["监控工具调用"]
+    F --> I["成本分析"]
     G --> I
     H --> I
     I --> J{预算超限?}
-    J -->|是| K[降级到便宜模型]
-    J -->|否| L[正常服务]
+    J -->|是| K["降级到便宜模型"]
+    J -->|否| L["正常服务"]
     style A fill:#1a1a2e,stroke:#0f3460,color:#e0e0e0
     style C fill:#1a1a2e,stroke:#16c79a,color:#e0e0e0
     style D fill:#1a1a2e,stroke:#533483,color:#e0e0e0
