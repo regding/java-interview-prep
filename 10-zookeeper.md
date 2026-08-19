@@ -64,16 +64,16 @@
 
 ```mermaid
 flowchart TD
-    A[客户端 getData/getChildren/exists 携带 watch] --> B[服务端 DataTree 注册 watch<br/>watchManager.addWatch 记录到 watchTable]
-    B --> C[写事务提交, 节点发生变化<br/>产生 NodeDataChanged / NodeDeleted / NodeChildrenChanged]
-    C --> D[DataTree 提交时收集受影响 watch<br/>并立即从 watchManager 移除 ← 一次性]
-    D --> E[连接线程 NIOServerCnxn 将事件<br/>写入客户端 TCP 发送队列]
+    A["客户端 getData/getChildren/exists 携带 watch"] --> B["服务端 DataTree 注册 watch<br/>watchManager.addWatch 记录到 watchTable"]
+    B --> C["写事务提交, 节点发生变化<br/>产生 NodeDataChanged / NodeDeleted / NodeChildrenChanged"]
+    C --> D["DataTree 提交时收集受影响 watch<br/>并立即从 watchManager 移除 ← 一次性"]
+    D --> E["连接线程 NIOServerCnxn 将事件<br/>写入客户端 TCP 发送队列"]
     E --> F{客户端连接是否在线}
-    F -->|在线| G[客户端收到通知: 路径 + 事件类型<br/>不含变化后的数据]
-    F -->|断开| H[事件被丢弃 ← 漏事件根源]
-    G --> I[客户端重新 getData 读取最新值<br/>并重新注册 watch]
+    F -->|在线| G["客户端收到通知: 路径 + 事件类型<br/>不含变化后的数据"]
+    F -->|断开| H["事件被丢弃 ← 漏事件根源"]
+    G --> I["客户端重新 getData 读取最新值<br/>并重新注册 watch"]
     I --> C
-    H --> J[客户端重连成功后全量拉取 + 重注册<br/>兜底补偿漏掉的变化]
+    H --> J["客户端重连成功后全量拉取 + 重注册<br/>兜底补偿漏掉的变化"]
 ```
 
 ### 1.3 数据一致性语义（先于协议讲清楚）
@@ -119,21 +119,21 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[节点启动 / 与 Leader 失联 / 收到更高 epoch 选票] --> B[状态置为 LOOKING]
-    B --> C[先投自己一票<br/>广播 选票(epoch, zxid, myid)]
+    A["节点启动 / 与 Leader 失联 / 收到更高 epoch 选票"] --> B["状态置为 LOOKING"]
+    B --> C["先投自己一票<br/>广播 选票(epoch, zxid, myid)"]
     C --> D{收到其他节点的选票}
-    D -->|对方三元组更大| E[改投对方并广播新选票]
-    D -->|对方三元组更小或相等| F[维持自己当前选票]
+    D -->|对方三元组更大| E["改投对方并广播新选票"]
+    D -->|对方三元组更小或相等| F["维持自己当前选票"]
     E --> G{是否存在某张选票<br/>得票数 > n/2}
     F --> G
     G -->|否, 继续收票| C
-    G -->|是| H[得票者进入 LEADING<br/>其余节点进入 FOLLOWING]
-    H --> I[Leader 与 Follower 对账已提交事务]
+    G -->|是| H["得票者进入 LEADING<br/>其余节点进入 FOLLOWING"]
+    H --> I["Leader 与 Follower 对账已提交事务"]
     I --> J{落后程度}
-    J -->|落后少量事务| K[DIFF 差量补发 proposal]
-    J -->|落后太多| L[SNAP 直接下发全量快照]
-    J -->|Follower 有多余事务| M[TRUNC 截断丢弃<br/>以新 Leader 提交记录为准]
-    K --> N[进入原子广播模式]
+    J -->|落后少量事务| K["DIFF 差量补发 proposal"]
+    J -->|落后太多| L["SNAP 直接下发全量快照"]
+    J -->|Follower 有多余事务| M["TRUNC 截断丢弃<br/>以新 Leader 提交记录为准"]
+    K --> N["进入原子广播模式"]
     L --> N
     M --> N
 ```

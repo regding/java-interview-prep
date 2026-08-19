@@ -127,15 +127,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[ServiceConfig.export<br/>Spring 容器启动时触发] --> B[检查配置: 接口/实现/注册中心]
-    B --> C[组装服务 URL<br/>dubbo://ip:port/接口?version&group&timeout...]
+    A["ServiceConfig.export<br/>Spring 容器启动时触发"] --> B["检查配置: 接口/实现/注册中心"]
+    B --> C["组装服务 URL<br/>dubbo://ip:port/接口?version&group&timeout..."]
     C --> D{是否本地引用}
-    D -->|是| E[本地暴露: injvm:// 协议<br/>注册到本地内存, 不走网络]
-    D -->|否| F[远程暴露: 打开 Netty 端口<br/>构建 Invoker → Exporter]
-    F --> G[向注册中心注册 URL<br/>带 weight/owner/application 元数据]
-    G --> H[注册成功后服务可被订阅发现]
+    D -->|是| E["本地暴露: injvm:// 协议<br/>注册到本地内存, 不走网络"]
+    D -->|否| F["远程暴露: 打开 Netty 端口<br/>构建 Invoker → Exporter"]
+    F --> G["向注册中心注册 URL<br/>带 weight/owner/application 元数据"]
+    G --> H["注册成功后服务可被订阅发现"]
     E --> H
-    H --> I[暴露完成, 返回 Exporter<br/>存于 exporterMap 供调用查找]
+    H --> I["暴露完成, 返回 Exporter<br/>存于 exporterMap 供调用查找"]
 ```
 
 - **本地暴露**：`injvm` 协议，同一个 JVM 内 Consumer 直调本地 Provider，**不走网络不走序列化**（本地调用优化）；
@@ -264,23 +264,23 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    M[master 进程<br/>读配置/fork/信号管理] -->|fork N 个| W1
+    M["master 进程<br/>读配置/fork/信号管理"] -->|fork N 个| W1
     M -->|fork N 个| W2
     M -->|fork N 个| WN
-    subgraph Worker[worker 进程 = CPU 核数]
-        W1[worker-1<br/>epoll 事件循环]
-        W2[worker-2<br/>epoll 事件循环]
-        WN[worker-N<br/>epoll 事件循环]
+    subgraph Worker["worker 进程 = CPU 核数"]
+        W1["worker-1<br/>epoll 事件循环"]
+        W2["worker-2<br/>epoll 事件循环"]
+        WN["worker-N<br/>epoll 事件循环"]
     end
-    C[客户端请求] -->|accept_mutex 或 SO_REUSEPORT 分配| W1
+    C["客户端请求"] -->|accept_mutex 或 SO_REUSEPORT 分配| W1
     C -->|分配| W2
     C -->|分配| WN
-    W1 --> E[epoll 等待就绪事件]
-    E --> F[读请求 → 解析]
+    W1 --> E["epoll 等待就绪事件"]
+    E --> F["读请求 → 解析"]
     F --> G{静态文件 or 反向代理}
-    G -->|静态| H[sendfile 直接发文件]
-    G -->|反代| I[与 upstream 建连转发<br/>proxy_cache/gzip 处理]
-    H --> J[写响应]
+    G -->|静态| H["sendfile 直接发文件"]
+    G -->|反代| I["与 upstream 建连转发<br/>proxy_cache/gzip 处理"]
+    H --> J["写响应"]
     I --> J
     J --> E
 ```
@@ -400,17 +400,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph 正常态[正常态]
-        V1[VIP 192.168.1.100] --> M1[MASTER nginx-A<br/>持有 VIP, 处理全部流量]
-        M1 --> B1[BACKUP nginx-B<br/>VRRP 监听, 随时待命]
-        K1[keepalived 健康检查<br/>每 2s 探 nginx 进程/端口]
+    subgraph "正常态[""正常态"]
+        V1[VIP 192.168.1.100] --> M1["MASTER nginx-A<br/>持有 VIP, 处理全部流量"]
+        M1 --> B1["BACKUP nginx-B<br/>VRRP 监听, 随时待命"]
+        K1["keepalived 健康检查<br/>每 2s 探 nginx 进程/端口"]
         K1 -->|健康| M1
     end
-    subgraph 故障态[故障漂移]
-        M2[nginx-A 宕机] --> K2[keepalived 检测失败<br/>降级优先级 / 自杀]
-        K2 --> V2[VIP 漂移到 nginx-B]
-        V2 --> B2[nginx-B 升级为 MASTER<br/>接管全部流量]
-        B2 --> R[nginx-A 恢复后<br/>自动降级为 BACKUP 待命]
+    subgraph "故障态[""故障漂移"]
+        M2["nginx-A 宕机"] --> K2["keepalived 检测失败<br/>降级优先级 / 自杀"]
+        K2 --> V2["VIP 漂移到 nginx-B"]
+        V2 --> B2["nginx-B 升级为 MASTER<br/>接管全部流量"]
+        B2 --> R["nginx-A 恢复后<br/>自动降级为 BACKUP 待命"]
     end
 ```
 

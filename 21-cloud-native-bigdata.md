@@ -106,27 +106,27 @@
 
 ```mermaid
 flowchart TD
-    User[开发者 / kubectl] --> API[kube-apiserver]
-    API --> ETCD[(etcd 状态存储)]
-    API --> SCH[kube-scheduler 调度]
-    API --> CMC[kube-controller-manager 控制器]
+    User["开发者 / kubectl"] --> API[kube-apiserver]
+    API --> ETCD["(etcd 状态存储)"]
+    API --> SCH["kube-scheduler 调度"]
+    API --> CMC["kube-controller-manager 控制器"]
     CMC --> API
     SCH --> API
     API --> K1[kubelet Node1]
     API --> K2[kubelet Node2]
-    K1 --> POD1[Pod 容器组]
-    K2 --> POD2[Pod 容器组]
+    K1 --> POD1["Pod 容器组"]
+    K2 --> POD2["Pod 容器组"]
     K1 --> KP1[kube-proxy iptables/IPVS]
     K2 --> KP2[kube-proxy]
-    POD1 -.-> CRI[containerd 运行时]
+    POD1 -.-> CRI["containerd 运行时"]
     POD2 -.-> CRI
-    subgraph 控制面
+    subgraph "控制面"
         API
         ETCD
         SCH
         CMC
     end
-    subgraph 工作节点
+    subgraph "工作节点"
         K1
         K2
         KP1
@@ -257,18 +257,18 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A[客户端 Pod] -->|HTTP/gRPC 流量| E1[Envoy Sidecar]
+    A["客户端 Pod"] -->|HTTP/gRPC 流量| E1[Envoy Sidecar]
     E1 --> E2[Envoy Sidecar]
-    E2 --> B[服务端 Pod 业务容器]
-    subgraph 数据面 Data Plane
+    E2 --> B["服务端 Pod 业务容器"]
+    subgraph "数据面 Data Plane"
         E1
         E2
     end
-    E1 -.->|xDS 配置下发| C[istiod 控制面]
+    E1 -.->|xDS 配置下发| C["istiod 控制面"]
     E2 -.->|xDS 配置下发| C
-    C --> P[Pilot 服务发现与配置]
-    C --> S[Citadel 证书签发 mTLS]
-    C --> G[Galley 配置校验与分发]
+    C --> P["Pilot 服务发现与配置"]
+    C --> S["Citadel 证书签发 mTLS"]
+    C --> G["Galley 配置校验与分发"]
 ```
 
 - **数据面（Data Plane）**：所有业务流量经过的 Envoy 代理，负责实际转发、重试、超时、熔断、负载均衡、mTLS 加解密、遥测上报；
@@ -318,20 +318,20 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Action 触发 count] --> B[构建 DAG 血缘图]
+    A["Action 触发 count"] --> B["构建 DAG 血缘图"]
     B --> C{按宽依赖切分 Stage}
-    C -->|窄依赖 管道化| S1[Stage1 并行 Task]
-    C -->|宽依赖 shuffle| S2[Stage2 并行 Task]
-    C -->|宽依赖 shuffle| S3[Stage3 并行 Task]
+    C -->|窄依赖 管道化| S1["Stage1 并行 Task"]
+    C -->|宽依赖 shuffle| S2["Stage2 并行 Task"]
+    C -->|宽依赖 shuffle| S3["Stage3 并行 Task"]
     S1 -->|shuffle 写磁盘| S2
     S2 -->|shuffle 写磁盘| S3
-    S3 --> D[结果汇聚到 Driver]
-    subgraph 执行引擎
+    S3 --> D["结果汇聚到 Driver"]
+    subgraph "执行引擎"
         S1
         S2
         S3
     end
-    D --> E[返回结果 / 落盘]
+    D --> E["返回结果 / 落盘"]
 ```
 
 ### 5.3 Flink：流处理与状态管理
@@ -393,19 +393,19 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph 离线索引
-        D[企业文档] --> S[切分 Chunk]
-        S --> E1[Embedding 模型]
-        E1 --> V[(向量数据库)]
+    subgraph "离线索引"
+        D["企业文档"] --> S["切分 Chunk"]
+        S --> E1["Embedding 模型"]
+        E1 --> V["(向量数据库)"]
     end
-    subgraph 在线问答
-        Q[用户问题] --> E2[Embedding 模型]
-        E2 --> R[向量检索 TopK]
+    subgraph "在线问答"
+        Q["用户问题"] --> E2["Embedding 模型"]
+        E2 --> R["向量检索 TopK"]
         V --> R
-        R --> RER[Rerank 精排]
-        RER --> P[拼接 Prompt 上下文]
-        P --> L[LLM 生成]
-        L --> A[答案 + 引用]
+        R --> RER["Rerank 精排"]
+        RER --> P["拼接 Prompt 上下文"]
+        P --> L["LLM 生成"]
+        L --> A["答案 + 引用"]
     end
 ```
 

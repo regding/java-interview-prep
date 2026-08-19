@@ -101,13 +101,13 @@ CommitLog（所有 topic 消息按到达顺序 append 到这一个文件，默�
 
 ```mermaid
 flowchart TD
-    P[Producer 发送消息 任意 topic 任意 queue] --> W[顺序追加写入 CommitLog<br/>所有 topic 共享 1GB 滚动文件]
-    W --> W2[mmap 内存映射 + 异步刷盘<br/>写页缓存即返回]
-    W2 --> CQ[异步构建 ConsumeQueue<br/>每 topic 每 queue 一个文件<br/>定长 20B 指针数组]
-    W2 --> IF[构建 IndexFile<br/>按消息 key 哈希索引 供管理台查询]
-    CQ --> CON[消费者拉取 先读 ConsumeQueue 拿偏移]
-    CON --> RD[随机读 CommitLog 取消息体<br/>页缓存命中 + sendfile 零拷贝送出]
-    W2 --> DEL[过期清理 删除 CommitLog 段文件<br/>ConsumeQueue 与 IndexFile 一并失效]
+    P["Producer 发送消息 任意 topic 任意 queue"] --> W["顺序追加写入 CommitLog<br/>所有 topic 共享 1GB 滚动文件"]
+    W --> W2["mmap 内存映射 + 异步刷盘<br/>写页缓存即返回"]
+    W2 --> CQ["异步构建 ConsumeQueue<br/>每 topic 每 queue 一个文件<br/>定长 20B 指针数组"]
+    W2 --> IF["构建 IndexFile<br/>按消息 key 哈希索引 供管理台查询"]
+    CQ --> CON["消费者拉取 先读 ConsumeQueue 拿偏移"]
+    CON --> RD["随机读 CommitLog 取消息体<br/>页缓存命中 + sendfile 零拷贝送出"]
+    W2 --> DEL["过期清理 删除 CommitLog 段文件<br/>ConsumeQueue 与 IndexFile 一并失效"]
 ```
 
 ### 2.2 刷盘策略与 mmap 零拷贝
@@ -281,15 +281,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[消费者处理消息] --> B{返回消费结果}
-    B -- CONSUME_SUCCESS --> C[位点推进 消费完成]
+    A["消费者处理消息"] --> B{返回消费结果}
+    B -- CONSUME_SUCCESS --> C["位点推进 消费完成"]
     B -- RECONSUME_LATER --> D{是否顺序消息?}
-    D -- 否 --> E[进入重试队列 %RETRY%group<br/>按延迟级别递增重投 1s→5s→...→2h]
-    D -- 是 --> F[原地阻塞重试 不跳队<br/>卡住整个队列 下游恢复后消化]
+    D -- 否 --> E["进入重试队列 %RETRY%group<br/>按延迟级别递增重投 1s→5s→...→2h"]
+    D -- 是 --> F["原地阻塞重试 不跳队<br/>卡住整个队列 下游恢复后消化"]
     E --> G{重试达到 16 次上限?}
     G -- 否 --> A
-    G -- 是 --> H[进入死信队列 %DLQ%group]
-    H --> I[不再自动消费<br/>监控告警 + 人工介入 重投或修复]
+    G -- 是 --> H["进入死信队列 %DLQ%group"]
+    H --> I["不再自动消费<br/>监控告警 + 人工介入 重投或修复"]
 ```
 
 ### 5.3 消息堆积排查与治理
@@ -365,16 +365,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    P[Producer 生产者] --> E{Exchange 交换机}
-    E -->|direct 精确匹配 routingKey| Q1[订单队列]
-    E -->|fanout 无视 key 广播| Q2[广播队列A]
-    E -->|fanout 无视 key 广播| Q3[广播队列B]
-    E -->|topic 通配符 * 一段 # 多段| Q4[灵活订阅队列]
-    E -->|headers 按 header 键值匹配| Q5[复杂条件队列]
-    Q1 --> C1[消费者1]
-    Q2 --> C2[消费者2]
+    P["Producer 生产者"] --> E{Exchange 交换机}
+    E -->|direct 精确匹配 routingKey| Q1["订单队列"]
+    E -->|fanout 无视 key 广播| Q2["广播队列A"]
+    E -->|fanout 无视 key 广播| Q3["广播队列B"]
+    E -->|topic 通配符 * 一段 # 多段| Q4["灵活订阅队列"]
+    E -->|headers 按 header 键值匹配| Q5["复杂条件队列"]
+    Q1 --> C1["消费者1"]
+    Q2 --> C2["消费者2"]
     Q3 --> C2
-    Q4 --> C3[消费者3]
+    Q4 --> C3["消费者3"]
     Q5 --> C3
 ```
 

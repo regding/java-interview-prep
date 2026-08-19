@@ -133,20 +133,20 @@ t0+30min / translog 512MB → flush → segment 落盘 + commit point + 清 tran
 
 ```mermaid
 flowchart TD
-    A[客户端发送写请求] --> B[任意节点充当协调节点]
-    B --> C[计算路由 shard = hash(routing) % 主分片数]
-    C --> D[转发到主分片所在节点]
-    D --> E[主分片写入内存 buffer + 追加 translog]
-    E --> F[translog 刷盘<br/>durability=request 每个请求 fsync]
-    F --> G[并行复制到全部副本分片 in-sync 集合]
+    A["客户端发送写请求"] --> B["任意节点充当协调节点"]
+    B --> C["计算路由 shard = hash(routing) % 主分片数"]
+    C --> D["转发到主分片所在节点"]
+    D --> E["主分片写入内存 buffer + 追加 translog"]
+    E --> F["translog 刷盘<br/>durability=request 每个请求 fsync"]
+    F --> G["并行复制到全部副本分片 in-sync 集合"]
     G --> H{wait_for_active_shards 确认策略}
-    H -- 默认 1：主分片成功即可 --> I[返回客户端写入成功]
+    H -- 默认 1：主分片成功即可 --> I["返回客户端写入成功"]
     H -- all：等所有副本确认 --> I
     I --> J{到达 refresh 时机 默认 1s?}
-    J -- 是 --> K[生成不可变 segment 进 page cache<br/>可搜索 近实时]
-    J -- 否 --> L[继续留在内存 buffer]
+    J -- 是 --> K["生成不可变 segment 进 page cache<br/>可搜索 近实时"]
+    J -- 否 --> L["继续留在内存 buffer"]
     K --> M{到达 flush 时机 30min 或 translog 512MB?}
-    M -- 是 --> N[segment fsync 落盘 + commit point<br/>清空 translog 持久化完成]
+    M -- 是 --> N["segment fsync 落盘 + commit point<br/>清空 translog 持久化完成"]
     M -- 否 --> K
 ```
 
@@ -195,14 +195,14 @@ ES 的更新是「读-改-写」三部曲，并发下需要乐观锁，ES 提供
 
 ```mermaid
 flowchart TD
-    A[客户端发送查询请求] --> B[协调节点接收]
-    B --> C[广播 query 到索引的全部分片 含副本]
-    C --> D[每个分片本地执行查询<br/>返回 from+size 条 docId 和 score]
-    D --> E[协调节点归并所有分片结果]
-    E --> F[按 score 全局排序 取第 from 到 from+size 条]
-    F --> G[Fetch 阶段 拿 docId 去对应分片取完整 _source]
-    G --> H[组装结果返回客户端]
-    E -.-> I[聚合场景：分片本地部分聚合<br/>协调节点 reduce 归并]
+    A["客户端发送查询请求"] --> B["协调节点接收"]
+    B --> C["广播 query 到索引的全部分片 含副本"]
+    C --> D["每个分片本地执行查询<br/>返回 from+size 条 docId 和 score"]
+    D --> E["协调节点归并所有分片结果"]
+    E --> F["按 score 全局排序 取第 from 到 from+size 条"]
+    F --> G["Fetch 阶段 拿 docId 去对应分片取完整 _source"]
+    G --> H["组装结果返回客户端"]
+    E -.-> I["聚合场景：分片本地部分聚合<br/>协调节点 reduce 归并"]
 ```
 
 关键点：
@@ -234,12 +234,12 @@ flowchart TD
 flowchart TD
     A{分页需求} --> B{需要随机跳页?}
     B -- 是 --> C{页码深度超过 1 万条?}
-    C -- 否 --> D[from+size 常规翻页<br/>受 max_result_window 限制]
-    C -- 是 --> E[反思产品设计<br/>用过滤/聚合降维或改滚动加载]
+    C -- 否 --> D["from+size 常规翻页<br/>受 max_result_window 限制"]
+    C -- 是 --> E["反思产品设计<br/>用过滤/聚合降维或改滚动加载"]
     B -- 否 --> F{需要导出数据快照?}
-    F -- 是 --> G[scroll 游标<br/>快照一致性 1 分钟可续期 只配导出]
+    F -- 是 --> G["scroll 游标<br/>快照一致性 1 分钟可续期 只配导出"]
     F -- 否 --> H{实时滚动加载?}
-    H -- 是 --> I[search_after + PIT<br/>排序字段加 _shard_doc 保证唯一]
+    H -- 是 --> I["search_after + PIT<br/>排序字段加 _shard_doc 保证唯一"]
     H -- 否 --> D
 ```
 

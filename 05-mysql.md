@@ -55,13 +55,13 @@
 
 ```mermaid
 flowchart TD
-    Client[客户端] --> Conn[连接器<br/>认证 权限校验 连接池<br/>wait_timeout 空闲回收]
+    Client["客户端"] --> Conn["连接器<br/>认证 权限校验 连接池<br/>wait_timeout 空闲回收"]
     Conn --> Cache{查询缓存<br/>5.7 默认关 8.0 已移除}
-    Cache -- 命中 --> Ret[直接返回结果]
-    Cache -- 未命中 --> Parser[分析器<br/>词法分析拆 token<br/>语法分析建语法树]
-    Parser --> Optimizer[优化器<br/>选索引 定 join 顺序<br/>生成执行计划]
-    Optimizer --> Executor[执行器<br/>权限二次校验<br/>调引擎接口逐行返回<br/>rows_examined 累计]
-    Executor --> Engine[InnoDB 存储引擎<br/>读 Buffer Pool/磁盘<br/>写 redo log / undo log / binlog]
+    Cache -- 命中 --> Ret["直接返回结果"]
+    Cache -- 未命中 --> Parser["分析器<br/>词法分析拆 token<br/>语法分析建语法树"]
+    Parser --> Optimizer["优化器<br/>选索引 定 join 顺序<br/>生成执行计划"]
+    Optimizer --> Executor["执行器<br/>权限二次校验<br/>调引擎接口逐行返回<br/>rows_examined 累计"]
+    Executor --> Engine["InnoDB 存储引擎<br/>读 Buffer Pool/磁盘<br/>写 redo log / undo log / binlog"]
     Engine --> Ret
 ```
 
@@ -257,7 +257,7 @@ flowchart TD
     Judge -->|"trx_id == creator 自己改的<br/>或 trx_id 小于 min_trx_id 已提交<br/>或已提交不在 m_ids"| OK["可见<br/>读取该版本"]
     Judge -->|"trx_id 大于等于 max_trx_id<br/>或活跃未提交在 m_ids 中"| Next["不可见<br/>沿 roll_pointer 向前<br/>找更旧版本"]
     Next --> U1
-    Note[RC: 每条 SELECT 语句新 ReadView<br/>RR: 事务内第一条 SELECT 生成后复用] -.-> RV
+    Note["RC: 每条 SELECT 语句新 ReadView<br/>RR: 事务内第一条 SELECT 生成后复用"] -.-> RV
 ```
 
 ### 5.2 ReadView 与可见性算法

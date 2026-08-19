@@ -62,16 +62,16 @@ DB 写入 = 订单 10 万条 + 库存扣减 10 万条，单库单表完全可承
 
 ```mermaid
 flowchart TD
-    U[用户浏览器/App] --> CDN[CDN 静态资源<br/>商品页静态化+按钮状态]
-    CDN --> GW[接入网关<br/>限流/风控/签名校验]
-    GW --> SK[秒杀服务集群 无状态]
-    SK --> LC[(本地缓存<br/>活动配置/开始时间)]
-    SK --> RD[(Redis 集群<br/>库存预扣 Lua)]
-    SK --> MQ[MQ 削峰<br/>成功令牌投递]
-    MQ --> OW[订单 Worker 集群]
-    OW --> DB[(MySQL<br/>订单表/库存表)]
-    OW --> NOTIFY[结果通知<br/>轮询/推送]
-    RD -. 对账兜底 .-> JOB[对账任务<br/>Redis vs DB 库存]
+    U["用户浏览器/App"] --> CDN["CDN 静态资源<br/>商品页静态化+按钮状态"]
+    CDN --> GW["接入网关<br/>限流/风控/签名校验"]
+    GW --> SK["秒杀服务集群 无状态"]
+    SK --> LC["(本地缓存<br/>活动配置/开始时间)"]
+    SK --> RD["(Redis 集群<br/>库存预扣 Lua)"]
+    SK --> MQ["MQ 削峰<br/>成功令牌投递"]
+    MQ --> OW["订单 Worker 集群"]
+    OW --> DB["(MySQL<br/>订单表/库存表)"]
+    OW --> NOTIFY["结果通知<br/>轮询/推送"]
+    RD -. 对账兜底 .-> JOB["对账任务<br/>Redis vs DB 库存"]
     JOB --> DB
 ```
 
@@ -182,16 +182,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    U[用户] --> W[Web/API 层]
-    W --> ID[发号器集群<br/>号段模式/雪花]
-    W --> ST[(MySQL 短链表<br/>按短码 hash 分片)]
-    W --> C[(Redis 缓存<br/>短码→长URL)]
-    R[跳转请求 30万QPS] --> GW2[跳转网关]
-    GW2 --> BF[布隆过滤器<br/>不存在直接 404]
+    U["用户"] --> W["Web/API 层"]
+    W --> ID["发号器集群<br/>号段模式/雪花"]
+    W --> ST["(MySQL 短链表<br/>按短码 hash 分片)"]
+    W --> C["(Redis 缓存<br/>短码→长URL)"]
+    R["跳转请求 30万QPS"] --> GW2["跳转网关"]
+    GW2 --> BF["布隆过滤器<br/>不存在直接 404"]
     BF --> C
     C -. 未命中 .-> ST
-    C --> REDIR[302 跳转 + 异步埋点]
-    JOB[过期清理任务] --> ST
+    C --> REDIR["302 跳转 + 异步埋点"]
+    JOB["过期清理任务"] --> ST
     ST -. 全量重建 .-> BF
 ```
 
@@ -276,15 +276,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    U[用户] --> G[接入网关<br/>限流/风控]
-    G --> RP[红包服务集群]
-    RP --> RD[(Redis<br/>红包元数据+金额队列+已抢Set)]
-    RP --> MQ[MQ 削峰]
-    MQ --> W[记账 Worker]
-    W --> DB[(MySQL 红包明细/账户流水)]
-    JOB[过期回收任务<br/>扫描过期红包] --> RD
+    U["用户"] --> G["接入网关<br/>限流/风控"]
+    G --> RP["红包服务集群"]
+    RP --> RD["(Redis<br/>红包元数据+金额队列+已抢Set)"]
+    RP --> MQ["MQ 削峰"]
+    MQ --> W["记账 Worker"]
+    W --> DB["(MySQL 红包明细/账户流水)"]
+    JOB["过期回收任务<br/>扫描过期红包"] --> RD
     JOB --> DB
-    CHK[对账任务<br/>Redis剩余 vs DB汇总] --> RD
+    CHK["对账任务<br/>Redis剩余 vs DB汇总"] --> RD
     CHK --> DB
 ```
 
@@ -378,16 +378,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    ADMIN[调度中心 Admin<br/>任务配置/触发/日志/告警]
-    DB[(调度 DB<br/>任务信息/调度日志)]
+    ADMIN["调度中心 Admin<br/>任务配置/触发/日志/告警"]
+    DB["(调度 DB<br/>任务信息/调度日志)"]
     ADMIN --> DB
-    ADMIN -->|触发| EX1[执行器 Executor 集群]
-    ADMIN -->|触发| EX2[执行器 Executor 集群]
-    EX1 --> REG[注册中心<br/>执行器上线自动注册/心跳摘除]
+    ADMIN -->|触发| EX1["执行器 Executor 集群"]
+    ADMIN -->|触发| EX2["执行器 Executor 集群"]
+    EX1 --> REG["注册中心<br/>执行器上线自动注册/心跳摘除"]
     EX2 --> REG
     REG --> ADMIN
-    EX1 --> APP1[业务系统 A]
-    EX2 --> APP2[业务系统 B]
+    EX1 --> APP1["业务系统 A"]
+    EX2 --> APP2["业务系统 B"]
 ```
 
 **XXL-Job 核心机制**：
@@ -475,15 +475,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    WHEEL[环形数组 0..N-1（如 512 槽）<br/>每 tick 推进一格]
-    WHEEL -->|当前指针 tick| SLOT0[槽 0: 任务链表]
-    WHEEL --> SLOT1[槽 1: 任务链表]
-    WHEEL --> SLOTK[槽 K: 任务链表]
+    WHEEL["环形数组 0..N-1（如 512 槽）<br/>每 tick 推进一格"]
+    WHEEL -->|当前指针 tick| SLOT0["槽 0: 任务链表"]
+    WHEEL --> SLOT1["槽 1: 任务链表"]
+    WHEEL --> SLOTK["槽 K: 任务链表"]
     SLOT0 --> T1[Task A]
     SLOT1 --> T2[Task B]
     SLOTK --> T3[Task C]
-    ADD[新任务: hash(延迟/tick) 定位槽<br/>O(1) 插入] --> WHEEL
-    TICK[定时线程每 tick 推进<br/>执行当前槽所有到期任务] --> WHEEL
+    ADD["新任务: hash(延迟/tick) 定位槽<br/>O(1) 插入"] --> WHEEL
+    TICK["定时线程每 tick 推进<br/>执行当前槽所有到期任务"] --> WHEEL
 ```
 
 **原理**：环形数组，指针每个 tick（如 100ms）前进一格；任务插入时按 `(当前tick + 延迟/tick) % 槽数` 定位槽位，挂到槽的链表上；指针扫到某槽时执行该槽所有任务。**超出环一周的任务记 `rounds`（剩余圈数），每圈减一，减到 0 才执行**——这是「大延迟任务」的处理方式。

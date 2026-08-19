@@ -119,11 +119,11 @@
 
 ```mermaid
 flowchart LR
-    A[加载 Load<br/>读字节码生成 Class 对象<br/>来源可非 class 文件] --> B[验证 Verify<br/>格式 语义 字节码校验<br/>防恶意字节码]
-    B --> C[准备 Prepare<br/>静态字段分配内存置零值<br/>static int a = 10 此时 a=0]
-    C --> D[解析 Resolve<br/>符号引用 转 直接引用<br/>可延迟到首次使用]
-    D --> E[初始化 Initialize<br/>执行 clinit<br/>new/反射/访问静态成员触发]
-    E --> F[使用与卸载<br/>类卸载前提:类加载器可回收]
+    A["加载 Load<br/>读字节码生成 Class 对象<br/>来源可非 class 文件"] --> B["验证 Verify<br/>格式 语义 字节码校验<br/>防恶意字节码"]
+    B --> C["准备 Prepare<br/>静态字段分配内存置零值<br/>static int a = 10 此时 a=0"]
+    C --> D["解析 Resolve<br/>符号引用 转 直接引用<br/>可延迟到首次使用"]
+    D --> E["初始化 Initialize<br/>执行 clinit<br/>new/反射/访问静态成员触发"]
+    E --> F["使用与卸载<br/>类卸载前提:类加载器可回收"]
     D -. 编译期常量 static final<br/>准备阶段写入常量池 .-> F
 ```
 
@@ -135,18 +135,18 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Start[loadClass 请求加载类] --> App{App ClassLoader<br/>先向上委派}
+    Start["loadClass 请求加载类"] --> App{App ClassLoader<br/>先向上委派}
     App -->|委派| Plat{Platform ClassLoader<br/>再向上委派}
     Plat -->|委派| Boot{Bootstrap ClassLoader<br/>核心类库 java.base}
-    Boot -->|找到| Done1[由 Bootstrap 加载<br/>类一致性 安全保证]
+    Boot -->|找到| Done1["由 Bootstrap 加载<br/>类一致性 安全保证"]
     Boot -->|找不到 向下回退| Plat
-    Plat -->|找到| Done2[由 Platform 加载<br/>扩展类库]
+    Plat -->|找到| Done2["由 Platform 加载<br/>扩展类库"]
     Plat -->|找不到 向下回退| App
-    App -->|找到| Done3[由 App 加载<br/>classpath 应用类]
+    App -->|找到| Done3["由 App 加载<br/>classpath 应用类"]
     App -->|找不到| Fail[ClassNotFoundException]
-    Start -. 打破场景 .-> Break1[Tomcat: WebAppClassLoader 应用类优先<br/>实现版本隔离与热部署]
-    Start -.-> Break2[SPI: 线程上下文类加载器 TCCL<br/>父加载器反向加载子类实现]
-    Start -.-> Break3[热部署/OSGi: 每次部署 new 加载器实例<br/>旧加载器整体可回收]
+    Start -. 打破场景 .-> Break1["Tomcat: WebAppClassLoader 应用类优先<br/>实现版本隔离与热部署"]
+    Start -.-> Break2["SPI: 线程上下文类加载器 TCCL<br/>父加载器反向加载子类实现"]
+    Start -.-> Break3["热部署/OSGi: 每次部署 new 加载器实例<br/>旧加载器整体可回收"]
 ```
 
 **为什么要打破？三大场景：**
@@ -269,16 +269,16 @@ G1 的「可预测停顿」本质是**空间换时间**：Region 细粒度让 GC
 
 ```mermaid
 flowchart TD
-    Start[GC 收集器选型] --> Q1{堆大小与目标?}
-    Q1 -- 中小堆 + 吞吐优先<br/>批量计算 --> Parallel[Parallel<br/>复制 + 标记整理<br/>JDK 8 默认 无并发阶段]
-    Q1 -- 中大型堆 + 停顿敏感<br/>4GB 以上 --> G1[G1<br/>Region 复制 + SATB 并发标记<br/>停顿预测模型<br/>JDK 9+ 默认]
+    Start["GC 收集器选型"] --> Q1{堆大小与目标?}
+    Q1 -- 中小堆 + 吞吐优先<br/>批量计算 --> Parallel["Parallel<br/>复制 + 标记整理<br/>JDK 8 默认 无并发阶段"]
+    Q1 -- 中大型堆 + 停顿敏感<br/>4GB 以上 --> G1["G1<br/>Region 复制 + SATB 并发标记<br/>停顿预测模型<br/>JDK 9+ 默认"]
     Q1 -- 超大堆 + 亚毫秒停顿<br/>TB 级 --> Q2{可接受更高 CPU?}
-    Q2 -- 是 --> ZGC[ZGC<br/>染色指针 + 读屏障<br/>并发转移 停顿 1ms 内]
+    Q2 -- 是 --> ZGC["ZGC<br/>染色指针 + 读屏障<br/>并发转移 停顿 1ms 内"]
     Q2 -- 否 --> G1
-    Q1 -- 云原生容器多实例 --> G1S[每实例 G1 小堆<br/>少用超大堆]
-    G1 -->|Eden 满| YGC[Young GC 复制回收]
-    G1 -->|老年代占用超 IHOP 45%| MGC[Mixed GC<br/>按收益选 Region]
-    MGC -->|回收跟不上分配| FGC[Full GC 退化<br/>先查根因再调参]
+    Q1 -- 云原生容器多实例 --> G1S["每实例 G1 小堆<br/>少用超大堆"]
+    G1 -->|Eden 满| YGC["Young GC 复制回收"]
+    G1 -->|老年代占用超 IHOP 45%| MGC["Mixed GC<br/>按收益选 Region"]
+    MGC -->|回收跟不上分配| FGC["Full GC 退化<br/>先查根因再调参"]
 ```
 
 ### 3.7 本节高频面试题
@@ -385,14 +385,14 @@ JDK 8 默认开启分层编译，解释器 + 两层编译器协作：
 
 ```mermaid
 flowchart TD
-    OOM[线上 OOM 报错<br/>先保命:确认类型与触发点<br/>补开 HeapDumpOnOutOfMemoryError] --> Type{OOM 类型?}
+    OOM["线上 OOM 报错<br/>先保命:确认类型与触发点<br/>补开 HeapDumpOnOutOfMemoryError"] --> Type{OOM 类型?}
     Type -- Java heap space<br/>或 GC overhead --> Q1{jstat GC 曲线走势?}
-    Q1 -- 老年代持续攀升<br/>只增不减 --> Leak[内存泄漏<br/>jmap -dump 堆转储<br/>MAT 支配树找引用链<br/>谁持有它]
-    Q1 -- 涨到平台期稳定 --> Cap[容量/峰值问题<br/>jmap -histo 看对象构成<br/>优化对象或调堆]
-    Type -- Metaspace --> Cl[动态生成类失控<br/>jmap -clstats 查类加载器数量<br/>CGLIB/热部署/反射 三源头]
-    Type -- unable to create<br/>native thread --> Th[线程数超 OS 限制<br/>jstack 数线程查状态分布<br/>无界线程池/连接池泄漏]
-    Type -- Direct buffer memory --> Dm[堆外内存泄漏<br/>Netty ByteBuffer 未释放<br/>查泄漏检测器日志]
-    Leak --> Fix[修复验证:灰度 + 压测复现<br/>先看最近上线变更]
+    Q1 -- 老年代持续攀升<br/>只增不减 --> Leak["内存泄漏<br/>jmap -dump 堆转储<br/>MAT 支配树找引用链<br/>谁持有它"]
+    Q1 -- 涨到平台期稳定 --> Cap["容量/峰值问题<br/>jmap -histo 看对象构成<br/>优化对象或调堆"]
+    Type -- Metaspace --> Cl["动态生成类失控<br/>jmap -clstats 查类加载器数量<br/>CGLIB/热部署/反射 三源头"]
+    Type -- unable to create<br/>native thread --> Th["线程数超 OS 限制<br/>jstack 数线程查状态分布<br/>无界线程池/连接池泄漏"]
+    Type -- Direct buffer memory --> Dm["堆外内存泄漏<br/>Netty ByteBuffer 未释放<br/>查泄漏检测器日志"]
+    Leak --> Fix["修复验证:灰度 + 压测复现<br/>先看最近上线变更"]
     Cap --> Fix
     Cl --> Fix
     Th --> Fix

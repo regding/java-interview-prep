@@ -80,7 +80,7 @@
 
 ```mermaid
 flowchart TD
-    subgraph 读路径
+    subgraph "读路径"
         A["请求"] --> B["L1 本地缓存<br/>Caffeine 微秒级"]
         B --> C{"L1 命中?"}
         C -- "是" --> R1["直接返回"]
@@ -91,7 +91,7 @@ flowchart TD
         H --> I["逐级回填 L1 + L2"]
         I --> R1
     end
-    subgraph 写路径
+    subgraph "写路径"
         W1["先写 DB"] --> W2["删 L2 缓存"]
         W2 --> W3["删 L1 本地缓存<br/>或等 TTL 过期"]
     end

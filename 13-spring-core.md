@@ -89,19 +89,19 @@ ApplicationContext 接口 = ListableBeanFactory + HierarchicalBeanFactory
 
 ```mermaid
 flowchart TD
-    A[① prepareRefresh 启动前准备] --> B[② obtainFreshBeanFactory<br/>销毁旧实例 重新加载 BeanDefinition]
-    B --> C[③ prepareBeanFactory 装配标准件<br/>类加载器 SpEL 类型转换器]
-    C --> D[④ postProcessBeanFactory 模板钩子<br/>Web 容器注册 ServletContext Scope]
-    D --> E[⑤ invokeBeanFactoryPostProcessors<br/>执行 BFPP ConfigurationClassPostProcessor 在此]
-    E -->|⑤ 先于 ⑥：BFPP 改图纸 BPP 造产品| F[⑥ registerBeanPostProcessors 注册全部 BPP]
-    F --> G[⑦ initMessageSource 国际化]
-    G --> H[⑧ initApplicationEventMulticaster 事件广播器]
-    H --> I[⑨ onRefresh 模板钩子<br/>Boot 在此启动内嵌 Tomcat]
-    I -->|⑨ 先于 ⑪：先起容器再实例化 Bean| J[⑩ registerListeners 注册监听器 补发早期事件]
-    J --> K[⑪ finishBeanFactoryInitialization<br/>实例化全部非懒加载单例 循环依赖舞台]
-    K --> L[⑫ finishRefresh 启动 LifecycleProcessor<br/>发布 ContextRefreshedEvent]
-    L --> M[容器启动完成]
-    A -. 任一步抛异常 .-> X[destroyBeans 清理已创建 Bean<br/>cancelRefresh 置失败标志]
+    A["① prepareRefresh 启动前准备"] --> B["② obtainFreshBeanFactory<br/>销毁旧实例 重新加载 BeanDefinition"]
+    B --> C["③ prepareBeanFactory 装配标准件<br/>类加载器 SpEL 类型转换器"]
+    C --> D["④ postProcessBeanFactory 模板钩子<br/>Web 容器注册 ServletContext Scope"]
+    D --> E["⑤ invokeBeanFactoryPostProcessors<br/>执行 BFPP ConfigurationClassPostProcessor 在此"]
+    E -->|⑤ 先于 ⑥：BFPP 改图纸 BPP 造产品| F["⑥ registerBeanPostProcessors 注册全部 BPP"]
+    F --> G["⑦ initMessageSource 国际化"]
+    G --> H["⑧ initApplicationEventMulticaster 事件广播器"]
+    H --> I["⑨ onRefresh 模板钩子<br/>Boot 在此启动内嵌 Tomcat"]
+    I -->|⑨ 先于 ⑪：先起容器再实例化 Bean| J["⑩ registerListeners 注册监听器 补发早期事件"]
+    J --> K["⑪ finishBeanFactoryInitialization<br/>实例化全部非懒加载单例 循环依赖舞台"]
+    K --> L["⑫ finishRefresh 启动 LifecycleProcessor<br/>发布 ContextRefreshedEvent"]
+    L --> M["容器启动完成"]
+    A -. 任一步抛异常 .-> X["destroyBeans 清理已创建 Bean<br/>cancelRefresh 置失败标志"]
 ```
 
 面试要点：⑨ 与 ⑪ 的顺序是 Boot 内嵌容器能工作的前提——**先起容器再实例化 Bean**，所以 DispatcherServlet 的 onRefresh 里才能拿到 ServletContext；⑤ 必须在 ⑥ 之前，因为 BeanPostProcessor 本身也是 Bean，且"后处理器必须晚于"普通 Bean 处理逻辑。
@@ -163,17 +163,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    S[BeanDefinition 元数据] --> A[① createBeanInstance<br/>构造器推断实例化]
-    A --> B[② 循环依赖提前暴露<br/>addSingletonFactory 入三级缓存]
-    B --> C[③ populateBean 属性填充<br/>@Autowired @Value @Resource]
+    S["BeanDefinition 元数据"] --> A["① createBeanInstance<br/>构造器推断实例化"]
+    A --> B["② 循环依赖提前暴露<br/>addSingletonFactory 入三级缓存"]
+    B --> C["③ populateBean 属性填充<br/>@Autowired @Value @Resource"]
     C --> D[④a invokeAwareMethods<br/>BeanNameAware → BeanClassLoaderAware → BeanFactoryAware]
-    D --> E[④b beforeInitialization BPP<br/>@PostConstruct 在此执行]
+    D --> E["④b beforeInitialization BPP<br/>@PostConstruct 在此执行"]
     E --> F[④c invokeInitMethods<br/>InitializingBean.afterPropertiesSet → init-method]
-    F --> G[④d afterInitialization BPP<br/>AbstractAutoProxyCreator 生成 AOP 代理]
-    G --> H[⑤ 注册 DisposableBean 单例]
-    H --> I[Bean 就绪 放入一级缓存 singletonObjects]
-    I --> J[容器关闭 按依赖图逆序销毁]
-    J --> K[⑥ 销毁 @PreDestroy → destroy → destroy-method]
+    F --> G["④d afterInitialization BPP<br/>AbstractAutoProxyCreator 生成 AOP 代理"]
+    G --> H["⑤ 注册 DisposableBean 单例"]
+    H --> I["Bean 就绪 放入一级缓存 singletonObjects"]
+    I --> J["容器关闭 按依赖图逆序销毁"]
+    J --> K["⑥ 销毁 @PreDestroy → destroy → destroy-method"]
 ```
 
 ### 2.2 三种初始化/销毁回调的对比
@@ -405,29 +405,29 @@ AbstractAutoProxyCreator（SmartInstantiationAwareBeanPostProcessor）
 
 ```mermaid
 flowchart TD
-    A[代理对象调用业务方法] --> B[TransactionInterceptor.invoke 拦截]
-    B --> C[解析事务属性<br/>方法级优先于类级]
-    C --> D[获取 PlatformTransactionManager<br/>默认 DataSourceTransactionManager]
-    D --> E[getTransaction 按传播行为决策]
-    E --> E1[REQUIRED 加入或新建]
-    E --> E2[REQUIRES_NEW 挂起当前新建]
-    E --> E3[NESTED Savepoint 嵌套]
+    A["代理对象调用业务方法"] --> B["TransactionInterceptor.invoke 拦截"]
+    B --> C["解析事务属性<br/>方法级优先于类级"]
+    C --> D["获取 PlatformTransactionManager<br/>默认 DataSourceTransactionManager"]
+    D --> E["getTransaction 按传播行为决策"]
+    E --> E1["REQUIRED 加入或新建"]
+    E --> E2["REQUIRES_NEW 挂起当前新建"]
+    E --> E3["NESTED Savepoint 嵌套"]
     E --> E4[SUPPORTS / NOT_SUPPORTED / MANDATORY / NEVER]
-    E1 --> F[ThreadLocal 绑定事务资源<br/>TransactionSynchronizationManager]
+    E1 --> F["ThreadLocal 绑定事务资源<br/>TransactionSynchronizationManager"]
     E2 --> F
     E3 --> F
     E4 --> F
-    F --> G[执行目标方法 invocation.proceed]
+    F --> G["执行目标方法 invocation.proceed"]
     G --> H{是否抛出异常?}
-    H -- 否 --> I[commit 提交<br/>先触发 afterCommit 同步回调]
+    H -- 否 --> I["commit 提交<br/>先触发 afterCommit 同步回调"]
     H -- 是 --> J[completeTransactionAfterThrowing]
     J --> K{异常类型判断}
-    K -- RuntimeException / Error --> L[rollback 回滚]
-    K -- checked 异常且未配 rollbackFor --> M[不回滚 正常提交 经典陷阱]
-    I --> N[清理 ThreadLocal 事务资源]
+    K -- RuntimeException / Error --> L["rollback 回滚"]
+    K -- checked 异常且未配 rollbackFor --> M["不回滚 正常提交 经典陷阱"]
+    I --> N["清理 ThreadLocal 事务资源"]
     L --> N
     M --> N
-    N --> O[方法返回]
+    N --> O["方法返回"]
 ```
 
 ### 5.2 事务传播行为 7 种

@@ -199,13 +199,13 @@ Proxy.newProxyInstance(classLoader, new Class[]{UserService.class}, handler);
 
 ```mermaid
 flowchart TD
-    Start[需要 AOP/代理增强] --> HasInterface{目标类有接口吗?}
-    HasInterface -- 是 --> JDK[JDK Proxy<br/>运行时生成接口实现类 Proxy0<br/>InvocationHandler 分发]
+    Start["需要 AOP/代理增强"] --> HasInterface{目标类有接口吗?}
+    HasInterface -- 是 --> JDK["JDK Proxy<br/>运行时生成接口实现类 Proxy0<br/>InvocationHandler 分发"]
     HasInterface -- 否 --> CheckFinal{目标类或方法是否 final?}
-    CheckFinal -- 否 --> CGLIB[CGLIB<br/>ASM 生成子类<br/>MethodInterceptor + FastClass]
-    CheckFinal -- 是 --> Fail[无法代理<br/>改造代码或换方案]
-    JDK --> Spring1[Spring AOP 可配 proxyTargetClass=true<br/>MyBatis Mapper 用它]
-    CGLIB --> Spring2[Spring Boot 2.x 默认 CGLIB<br/>Configuration 类被子类化]
+    CheckFinal -- 否 --> CGLIB["CGLIB<br/>ASM 生成子类<br/>MethodInterceptor + FastClass"]
+    CheckFinal -- 是 --> Fail["无法代理<br/>改造代码或换方案"]
+    JDK --> Spring1["Spring AOP 可配 proxyTargetClass=true<br/>MyBatis Mapper 用它"]
+    CGLIB --> Spring2["Spring Boot 2.x 默认 CGLIB<br/>Configuration 类被子类化"]
     Fail --> Spring1
     Fail --> Spring2
 ```
@@ -303,10 +303,10 @@ try (FileInputStream in = new FileInputStream("a");
 
 ```mermaid
 flowchart LR
-    BIO[BIO<br/>一连接一线程<br/>线程阻塞在 read] -->|线程数 = 连接数<br/>撑不住 C10K| NIO[NIO JDK 1.4<br/>Selector 事件驱动<br/>数据就绪再派线程<br/>Linux 底层 epoll]
-    NIO -->|就绪后仍需<br/>用户线程读| AIO[AIO JDK 1.7<br/>OS 完成 IO 后回调<br/>Proactor 完成通知]
-    NIO -->|实战主流| Netty[Netty<br/>多 Reactor 多线程<br/>boss accept + worker 读写]
-    AIO -->|Windows IOCP 成熟<br/>Linux 不成熟| Note[Linux 仍用 epoll<br/>io_uring 是异步 IO 新方向]
+    BIO["BIO<br/>一连接一线程<br/>线程阻塞在 read"] -->|线程数 = 连接数<br/>撑不住 C10K| NIO["NIO JDK 1.4<br/>Selector 事件驱动<br/>数据就绪再派线程<br/>Linux 底层 epoll"]
+    NIO -->|就绪后仍需<br/>用户线程读| AIO["AIO JDK 1.7<br/>OS 完成 IO 后回调<br/>Proactor 完成通知"]
+    NIO -->|实战主流| Netty["Netty<br/>多 Reactor 多线程<br/>boss accept + worker 读写"]
+    AIO -->|Windows IOCP 成熟<br/>Linux 不成熟| Note["Linux 仍用 epoll<br/>io_uring 是异步 IO 新方向"]
 ```
 
 ### 5.2 Selector 原理与经典坑
@@ -457,16 +457,16 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    J8[Java 8 2014<br/>Lambda/Stream<br/>Optional/java.time] --> J9[Java 9 2017<br/>JPMS 模块化]
-    J9 --> J11[Java 11 LTS<br/>ZGC 实验<br/>HttpClient 转正]
-    J11 --> J17[Java 17 LTS<br/>sealed 转正<br/>强封装 JDK 内部]
-    J17 --> J21[Java 21 LTS<br/>虚拟线程转正<br/>record/switch 模式匹配<br/>SequencedCollection]
-    J21 --> J25[Java 25<br/>Valhalla 原始类型<br/>方向继续演进]
-    J8 -.-> J10[Java 10<br/>var 局部变量推断]
-    J9 -.-> J14[Java 14<br/>record 预览<br/>instanceof 模式预览]
-    J11 -.-> J15[Java 15<br/>偏向锁废弃 JEP 374<br/>ZGC/Shenandoah 转正]
-    J17 -.-> J19[Java 19<br/>虚拟线程预览<br/>向量 API 孵化]
-    J21 -.-> J24[Java 24<br/>Compact Object Headers<br/>原始类型模式匹配预览]
+    J8[Java 8 2014<br/>Lambda/Stream<br/>Optional/java.time] --> J9["Java 9 2017<br/>JPMS 模块化"]
+    J9 --> J11["Java 11 LTS<br/>ZGC 实验<br/>HttpClient 转正"]
+    J11 --> J17["Java 17 LTS<br/>sealed 转正<br/>强封装 JDK 内部"]
+    J17 --> J21["Java 21 LTS<br/>虚拟线程转正<br/>record/switch 模式匹配<br/>SequencedCollection"]
+    J21 --> J25["Java 25<br/>Valhalla 原始类型<br/>方向继续演进"]
+    J8 -.-> J10["Java 10<br/>var 局部变量推断"]
+    J9 -.-> J14["Java 14<br/>record 预览<br/>instanceof 模式预览"]
+    J11 -.-> J15["Java 15<br/>偏向锁废弃 JEP 374<br/>ZGC/Shenandoah 转正"]
+    J17 -.-> J19["Java 19<br/>虚拟线程预览<br/>向量 API 孵化"]
+    J21 -.-> J24["Java 24<br/>Compact Object Headers<br/>原始类型模式匹配预览"]
 ```
 
 ### 7.6 本节高频面试题

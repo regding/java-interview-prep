@@ -153,25 +153,25 @@ put(key,value)
 
 ```mermaid
 flowchart TD
-    Start[put key value] --> H[hash = h ^ h >>> 16<br/>高位扰动一次]
+    Start[put key value] --> H["hash = h ^ h >>> 16<br/>高位扰动一次"]
     H --> C1{table 为空?}
-    C1 -- 是 --> Init[resize 初始化<br/>默认容量 16 阈值 12]
+    C1 -- 是 --> Init["resize 初始化<br/>默认容量 16 阈值 12"]
     Init --> C2
     C1 -- 否 --> C2{桶 tab i 为空?<br/>i = n-1 & hash}
-    C2 -- 是 --> NewNode[直接 new Node 放入<br/>无锁语义 单线程无竞争]
+    C2 -- 是 --> NewNode["直接 new Node 放入<br/>无锁语义 单线程无竞争"]
     C2 -- 否 --> C3{桶头是 TreeNode?}
-    C3 -- 是 --> Tree[putTreeVal<br/>红黑树插入]
-    C3 -- 否 --> List[遍历链表 先比 hash 后比 equals]
+    C3 -- 是 --> Tree["putTreeVal<br/>红黑树插入"]
+    C3 -- 否 --> List["遍历链表 先比 hash 后比 equals"]
     List --> C4{找到相同 key?}
-    C4 -- 是 --> Override[覆盖 value 返回旧值]
-    C4 -- 否 --> Tail[尾插新节点]
+    C4 -- 是 --> Override["覆盖 value 返回旧值"]
+    C4 -- 否 --> Tail["尾插新节点"]
     Tail --> C5{链表长度 >= 8?}
     C5 -- 是 --> C6{table.length >= 64?}
-    C6 -- 是 --> Treeify[treeifyBin 树化<br/>红黑树兜底防退化]
-    C6 -- 否 --> Resize1[先 resize 扩容<br/>不树化 扩容更便宜]
+    C6 -- 是 --> Treeify["treeifyBin 树化<br/>红黑树兜底防退化"]
+    C6 -- 否 --> Resize1["先 resize 扩容<br/>不树化 扩容更便宜"]
     C5 -- 否 --> C7{size+1 大于<br/>threshold 容量 x0.75?}
-    C7 -- 是 --> Resize2[resize 扩容<br/>容量翻倍 链表拆分]
-    C7 -- 否 --> End[完成]
+    C7 -- 是 --> Resize2["resize 扩容<br/>容量翻倍 链表拆分"]
+    C7 -- 否 --> End["完成"]
     NewNode --> C7
     Tree --> C7
     Override --> End
@@ -193,16 +193,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start[resize 扩容<br/>newCap = oldCap << 1<br/>新表 2 倍容量] --> Loop[遍历旧表每个非空桶]
+    Start["resize 扩容<br/>newCap = oldCap << 1<br/>新表 2 倍容量"] --> Loop["遍历旧表每个非空桶"]
     Loop --> Split{节点 e.hash & oldCap 判断}
-    Split -- 结果为 0 --> LoChain[挂 lo 链<br/>留在原位 tab j]
-    Split -- 结果为 1 --> HiChain[挂 hi 链<br/>移到 tab j + oldCap]
-    LoChain --> Next[处理下一个节点]
+    Split -- 结果为 0 --> LoChain["挂 lo 链<br/>留在原位 tab j"]
+    Split -- 结果为 1 --> HiChain["挂 hi 链<br/>移到 tab j + oldCap"]
+    LoChain --> Next["处理下一个节点"]
     HiChain --> Next
     Next --> C1{链表遍历完?}
     C1 -- 否 --> Split
-    C1 -- 是 --> Tree[树节点同样拆分<br/>拆后某链长度 <= 6<br/>退化为链表 untreeify]
-    Tree --> End[扩容完成<br/>全程不重算 hash<br/>O1 完成单桶迁移]
+    C1 -- 是 --> Tree["树节点同样拆分<br/>拆后某链长度 <= 6<br/>退化为链表 untreeify"]
+    Tree --> End["扩容完成<br/>全程不重算 hash<br/>O1 完成单桶迁移"]
 ```
 
 ### 3.6 并发问题：1.7 扩容死循环（必考）
@@ -297,16 +297,16 @@ A：容量 <64 时哈希表本身太小，冲突多是容量问题而非 hash �
 ```mermaid
 flowchart TD
     Start[put key value] --> C1{桶 tabAt i 为空?}
-    C1 -- 是 --> CAS[casTabAt CAS 无锁插入<br/>成功即返回 无锁快路径]
-    CAS --> End[完成]
+    C1 -- 是 --> CAS["casTabAt CAS 无锁插入<br/>成功即返回 无锁快路径"]
+    CAS --> End["完成"]
     C1 -- 否 --> C2{"桶头 hash == -1<br/>ForwardingNode 扩容中?"}
-    C2 -- 是 --> Help[helpTransfer<br/>加入其他线程的扩容迁移<br/>迁移完成后再 put]
+    C2 -- 是 --> Help["helpTransfer<br/>加入其他线程的扩容迁移<br/>迁移完成后再 put"]
     Help --> Start
-    C2 -- 否 --> Lock[synchronized 锁桶头<br/>锁粒度=单个桶]
+    C2 -- 否 --> Lock["synchronized 锁桶头<br/>锁粒度=单个桶"]
     Lock --> C3{桶头是 TreeBin?}
-    C3 -- 是 --> Tree[红黑树插入<br/>树节点头锁]
-    C3 -- 否 --> List[遍历链表<br/>相同 key 覆盖<br/>否则尾插 超 8 树化]
-    Tree --> AddCount[addCount 计数<br/>baseCount + CounterCell<br/>超阈值触发 transfer]
+    C3 -- 是 --> Tree["红黑树插入<br/>树节点头锁"]
+    C3 -- 否 --> List["遍历链表<br/>相同 key 覆盖<br/>否则尾插 超 8 树化"]
+    Tree --> AddCount["addCount 计数<br/>baseCount + CounterCell<br/>超阈值触发 transfer"]
     List --> AddCount
     AddCount --> End
 ```
@@ -408,18 +408,18 @@ A：AVL 严格平衡，查询略快，但插入删除旋转更频繁；红黑树
 flowchart LR
     subgraph S1["① 初始插入序 A B C D"]
         direction LR
-        A1[A] --> B1[B] --> C1[C] --> D1[D 链表尾]
+        A1[A] --> B1[B] --> C1[C] --> D1["D 链表尾"]
     end
     subgraph S2["② get(B) 命中后 B 移到尾部"]
         direction LR
-        A2[A] --> C2[C] --> D2[D] --> B2[B 链表尾]
+        A2[A] --> C2[C] --> D2[D] --> B2["B 链表尾"]
     end
     subgraph S3["③ 容量 3 再 put(E) 淘汰表头 A"]
         direction LR
-        A3[A 淘汰] -.-> C3[C] --> D3[D] --> B3[B] --> E3[E 链表尾]
+        A3["A 淘汰"] -.-> C3[C] --> D3[D] --> B3[B] --> E3["E 链表尾"]
     end
     S1 --> S2 --> S3
-    Note[双向链表保证 O1 移尾与删头<br/>HashMap 提供 O1 查找<br/>哨兵节点防空表] -.-> S3
+    Note["双向链表保证 O1 移尾与删头<br/>HashMap 提供 O1 查找<br/>哨兵节点防空表"] -.-> S3
 ```
 
 ### 6.2 手写 LRU 缓存（面试必写）

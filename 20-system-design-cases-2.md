@@ -90,19 +90,19 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    U[用户] --> G[网关]
-    G --> OS[订单服务]
-    OS --> ID[订单号发号器<br/>号段模式]
-    OS --> IS[库存服务]
-    IS --> R[(Redis 预扣)]
-    IS --> DB2[(MySQL 库存)]
-    OS --> DB[(MySQL 订单库<br/>按 user_id 分库分表)]
-    OS --> DQ[延迟队列<br/>超时关单]
+    U["用户"] --> G["网关"]
+    G --> OS["订单服务"]
+    OS --> ID["订单号发号器<br/>号段模式"]
+    OS --> IS["库存服务"]
+    IS --> R["(Redis 预扣)"]
+    IS --> DB2["(MySQL 库存)"]
+    OS --> DB["(MySQL 订单库<br/>按 user_id 分库分表)"]
+    OS --> DQ["延迟队列<br/>超时关单"]
     DQ --> OS
     OS --> MQ[MQ]
-    MQ --> PAY[支付回调处理]
-    MQ --> NOTIFY[通知/物流等下游]
-    OS --> JOB[对账/补偿任务]
+    MQ --> PAY["支付回调处理"]
+    MQ --> NOTIFY["通知/物流等下游"]
+    OS --> JOB["对账/补偿任务"]
 ```
 
 ```mermaid
@@ -183,18 +183,18 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    U[用户] --> G[网关/风控]
-    G --> PS[支付核心<br/>支付单/状态机]
-    PS --> ROUTE[渠道路由<br/>渠道选择/优先级]
-    ROUTE --> CH1[渠道适配器 微信]
-    ROUTE --> CH2[渠道适配器 支付宝]
-    ROUTE --> CH3[渠道适配器 银行卡]
-    CH1 --> EXT[外部渠道网关]
-    PS --> ACCT[账务系统<br/>复式记账/余额]
+    U["用户"] --> G["网关/风控"]
+    G --> PS["支付核心<br/>支付单/状态机"]
+    PS --> ROUTE["渠道路由<br/>渠道选择/优先级"]
+    ROUTE --> CH1["渠道适配器 微信"]
+    ROUTE --> CH2["渠道适配器 支付宝"]
+    ROUTE --> CH3["渠道适配器 银行卡"]
+    CH1 --> EXT["外部渠道网关"]
+    PS --> ACCT["账务系统<br/>复式记账/余额"]
     PS --> MQ[MQ]
-    MQ --> BIZ[业务系统<br/>订单状态更新]
-    PS --> RECON[对账中心<br/>渠道账单 vs 本地流水]
-    RECON --> ERR[差错处理<br/>长款/短款/单边账]
+    MQ --> BIZ["业务系统<br/>订单状态更新"]
+    PS --> RECON["对账中心<br/>渠道账单 vs 本地流水"]
+    RECON --> ERR["差错处理<br/>长款/短款/单边账"]
 ```
 
 ```mermaid
@@ -313,16 +313,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    C1[客户端 App/Web] --> LB[接入层 LB<br/>四层负载均衡]
-    LB --> GW1[接入网关集群<br/>WebSocket/自定义TCP]
-    LB --> GW2[接入网关集群]
-    GW1 --> ROUTE[路由服务<br/>在线状态/连接定位]
-    ROUTE --> RD[(Redis<br/>uid→网关节点映射)]
-    GW1 --> MSG[消息服务<br/>上行处理/序号分配]
-    MSG --> ST[(消息存储<br/>按会话分库分表)]
-    MSG --> OFFLINE[(离线消息<br/>Redis/存储)]
-    MSG --> PUSH[推送服务<br/>在线推/APNs/FCM]
-    MSG --> MQ[MQ<br/>群聊扇出/异步]
+    C1["客户端 App/Web"] --> LB["接入层 LB<br/>四层负载均衡"]
+    LB --> GW1["接入网关集群<br/>WebSocket/自定义TCP"]
+    LB --> GW2["接入网关集群"]
+    GW1 --> ROUTE["路由服务<br/>在线状态/连接定位"]
+    ROUTE --> RD["(Redis<br/>uid→网关节点映射)"]
+    GW1 --> MSG["消息服务<br/>上行处理/序号分配"]
+    MSG --> ST["(消息存储<br/>按会话分库分表)"]
+    MSG --> OFFLINE["(离线消息<br/>Redis/存储)"]
+    MSG --> PUSH["推送服务<br/>在线推/APNs/FCM"]
+    MSG --> MQ["MQ<br/>群聊扇出/异步"]
     GW2 --> PUSH
 ```
 
@@ -440,20 +440,20 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    U[用户] --> G[网关]
-    G --> POST[发帖服务]
-    POST --> FEED[(帖子表<br/>feed_id 分片)]
-    POST --> FAN[扇出服务<br/>粉丝列表+写收件箱]
-    FAN --> INBOX[(收件箱表<br/>user_id 分片)]
+    U["用户"] --> G["网关"]
+    G --> POST["发帖服务"]
+    POST --> FEED["(帖子表<br/>feed_id 分片)"]
+    POST --> FAN["扇出服务<br/>粉丝列表+写收件箱"]
+    FAN --> INBOX["(收件箱表<br/>user_id 分片)"]
     POST --> BIGV{大 V?}
-    BIGV -->|是| STOP[不扇出，只写帖子表]
+    BIGV -->|是| STOP["不扇出，只写帖子表"]
     BIGV -->|否| FAN
-    G --> TL[时间线服务]
-    TL --> C[(缓存<br/>时间线/热点帖子)]
+    G --> TL["时间线服务"]
+    TL --> C["(缓存<br/>时间线/热点帖子)"]
     TL --> INBOX
-    TL --> BIGV2[大 V 实时拉取合并]
+    TL --> BIGV2["大 V 实时拉取合并"]
     TL --> FEED
-    MQ[MQ 异步扇出] --> FAN
+    MQ["MQ 异步扇出"] --> FAN
 ```
 
 ### 4.7 高可用与扩展
@@ -518,13 +518,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Q[用户查询] --> U[查询理解<br/>分词/纠错/同义词/意图]
-    U --> R[召回<br/>ES 粗筛 top 1000<br/>BM25 相关性]
-    R --> F[精排<br/>规则加权/机器学习模型]
-    F --> B[业务规则过滤<br/>下架/地域/价格区间]
-    B --> S[结果组装<br/>高亮/摘要/广告混排]
-    S --> C[(结果缓存<br/>热词)]
-    S --> U2[用户]
+    Q["用户查询"] --> U["查询理解<br/>分词/纠错/同义词/意图"]
+    U --> R["召回<br/>ES 粗筛 top 1000<br/>BM25 相关性"]
+    R --> F["精排<br/>规则加权/机器学习模型"]
+    F --> B["业务规则过滤<br/>下架/地域/价格区间"]
+    B --> S["结果组装<br/>高亮/摘要/广告混排"]
+    S --> C["(结果缓存<br/>热词)"]
+    S --> U2["用户"]
 ```
 
 - **召回**：倒排索引粗筛（BM25/TF-IDF 打分），取 top N（几百~几千），追求**快与全**（不能漏掉可能相关的文档）；
@@ -543,17 +543,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    M[(业务 MySQL)] --> CANAL[Canal<br/>监听 binlog]
-    CANAL --> MQ2[MQ<br/>数据变更事件]
-    MQ2 --> IDX[索引服务<br/>消费+构建文档]
-    IDX --> ES[(Elasticsearch<br/>索引集群)]
-    ES --> C[(Redis 热词缓存)]
-    FULL[全量构建任务<br/>离线快照重建] --> ES
-    U3[用户] --> SG[搜索网关]
-    SG --> QU[查询理解]
+    M["(业务 MySQL)"] --> CANAL["Canal<br/>监听 binlog"]
+    CANAL --> MQ2["MQ<br/>数据变更事件"]
+    MQ2 --> IDX["索引服务<br/>消费+构建文档"]
+    IDX --> ES["(Elasticsearch<br/>索引集群)"]
+    ES --> C["(Redis 热词缓存)"]
+    FULL["全量构建任务<br/>离线快照重建"] --> ES
+    U3["用户"] --> SG["搜索网关"]
+    SG --> QU["查询理解"]
     QU --> ES
     QU --> C
-    ES --> RES[结果]
+    ES --> RES["结果"]
     C --> RES
 ```
 

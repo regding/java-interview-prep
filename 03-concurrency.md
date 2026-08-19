@@ -433,20 +433,20 @@ execute(task):
 ```mermaid
 flowchart TD
     Start[execute task] --> C1{workerCount 小于<br/>corePoolSize?}
-    C1 -- 是 --> Add1[addWorker task true<br/>创建核心线程执行]
+    C1 -- 是 --> Add1["addWorker task true<br/>创建核心线程执行"]
     C1 -- 否 --> C2{线程池 RUNNING<br/>且 workQueue.offer 成功?}
-    Add1 --> Done[任务被 worker 执行<br/>runWorker 循环 getTask]
+    Add1 --> Done["任务被 worker 执行<br/>runWorker 循环 getTask"]
     C2 -- 是 --> C3{二次检查<br/>线程池已停止?}
-    C3 -- 是 --> Remove[移除任务<br/>reject 拒绝策略]
+    C3 -- 是 --> Remove["移除任务<br/>reject 拒绝策略"]
     C3 -- 否 --> C4{workerCount 为 0?<br/>核心线程已被回收}
-    C4 -- 是 --> AddEmpty[addWorker null<br/>补空任务 worker 兜底]
+    C4 -- 是 --> AddEmpty["addWorker null<br/>补空任务 worker 兜底"]
     C4 -- 否 --> Done
     C2 -- 否 队列满 --> Add2{addWorker task false<br/>扩到 maximumPoolSize 成功?}
     Add2 -- 是 --> Done
-    Add2 -- 否 --> Reject[reject 拒绝策略<br/>Abort / CallerRuns<br/>Discard / DiscardOldest]
+    Add2 -- 否 --> Reject["reject 拒绝策略<br/>Abort / CallerRuns<br/>Discard / DiscardOldest"]
     Remove --> Reject
     AddEmpty --> Done
-    Note1[先核心 再队列 后扩容<br/>队列满之前不创建超 core 线程] -.-> Start
+    Note1["先核心 再队列 后扩容<br/>队列满之前不创建超 core 线程"] -.-> Start
 ```
 
 ### 8.3 合理配置与动态线程池
@@ -536,16 +536,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start[疑似死锁/系统卡死] --> Step1[jstack pid 输出线程 dump]
+    Start["疑似死锁/系统卡死"] --> Step1["jstack pid 输出线程 dump"]
     Step1 --> Q1{日志含 deadlock 关键字?<br/>Found one Java-level deadlock}
-    Q1 -- 是 --> Found[JVM 直接给出循环等待链<br/>涉及线程与锁引用链<br/>按链定位代码修复]
+    Q1 -- 是 --> Found["JVM 直接给出循环等待链<br/>涉及线程与锁引用链<br/>按链定位代码修复"]
     Q1 -- 否 --> Q2{大量 BLOCKED 线程?}
-    Q2 -- 是 --> Step2[看 waiting to lock 与 owner 线程栈<br/>画 线程-锁 依赖图找环<br/>arthas thread -b 辅助]
+    Q2 -- 是 --> Step2["看 waiting to lock 与 owner 线程栈<br/>画 线程-锁 依赖图找环<br/>arthas thread -b 辅助"]
     Step2 --> Q3{存在循环等待环?}
     Q3 -- 是 --> Found
-    Q3 -- 否 --> Other[活锁 / 线程池耗尽<br/>分布式锁未释放<br/>锁内远程调用超时]
+    Q3 -- 否 --> Other["活锁 / 线程池耗尽<br/>分布式锁未释放<br/>锁内远程调用超时"]
     Q2 -- 否 --> Other
-    Found --> Fix[重启止损 改锁顺序<br/>tryLock 超时兜底<br/>先看最近变更 git diff]
+    Found --> Fix["重启止损 改锁顺序<br/>tryLock 超时兜底<br/>先看最近变更 git diff"]
     Other --> Fix
 ```
 

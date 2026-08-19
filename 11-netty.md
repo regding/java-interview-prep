@@ -70,20 +70,20 @@
 
 ```mermaid
 flowchart LR
-    subgraph 传统路径[传统 read+write: 4 次拷贝]
-        A[磁盘] -->|DMA| B[内核页缓存]
-        B -->|CPU 拷贝| C[用户态 buffer]
-        C -->|CPU 拷贝| D[内核 socket 缓冲]
-        D -->|DMA| E[网卡]
+    subgraph "传统路径[""传统 read+write: 4 次拷贝"]
+        A["磁盘"] -->|DMA| B["内核页缓存"]
+        B -->|CPU 拷贝| C["用户态 buffer"]
+        C -->|CPU 拷贝| D["内核 socket 缓冲"]
+        D -->|DMA| E["网卡"]
     end
-    subgraph sendfile[sendfile: 2 次拷贝]
-        F[磁盘] -->|DMA| G[内核页缓存]
-        G -->|CPU 拷贝| H[内核 socket 缓冲]
-        H -->|DMA| I[网卡]
+    subgraph sendfile["sendfile: 2 次拷贝"]
+        F["磁盘"] -->|DMA| G["内核页缓存"]
+        G -->|CPU 拷贝| H["内核 socket 缓冲"]
+        H -->|DMA| I["网卡"]
     end
-    subgraph gather[DMA gather: 真正零拷贝]
-        J[磁盘] -->|DMA| K[内核页缓存]
-        K -->|描述符直接下发| L[网卡]
+    subgraph gather["DMA gather: 真正零拷贝"]
+        J["磁盘"] -->|DMA| K["内核页缓存"]
+        K -->|描述符直接下发| L["网卡"]
     end
 ```
 
@@ -128,23 +128,23 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    C[客户端连接] -->|TCP 三次握手完成| B1
-    subgraph BossGroup[MainReactor = BossGroup<br/>通常 1~2 个线程, 各持一个 Selector]
-        B1[EventLoop-1<br/>selector 只监听 OP_ACCEPT]
+    C["客户端连接"] -->|TCP 三次握手完成| B1
+    subgraph BossGroup["MainReactor = BossGroup<br/>通常 1~2 个线程, 各持一个 Selector"]
+        B1["EventLoop-1<br/>selector 只监听 OP_ACCEPT"]
         B2[EventLoop-2]
     end
     B1 -->|accept 取出 NioSocketChannel| R{轮询选择 Worker}
     B2 --> R
     R -->|register| W1
     R -->|register| W2
-    subgraph WorkerGroup[SubReactor = WorkerGroup<br/>N 个线程, 各持一个 Selector]
-        W1[EventLoop-1<br/>监听 OP_READ / OP_WRITE]
+    subgraph WorkerGroup["SubReactor = WorkerGroup<br/>N 个线程, 各持一个 Selector"]
+        W1["EventLoop-1<br/>监听 OP_READ / OP_WRITE"]
         W2[EventLoop-2]
         W3[EventLoop-N]
     end
     W1 -->|读事件| P[ChannelPipeline<br/>Decoder → Handler → Encoder]
     W2 -->|读事件| P
-    P -->|耗时业务| T[独立业务线程池<br/>处理完异步 writeAndFlush]
+    P -->|耗时业务| T["独立业务线程池<br/>处理完异步 writeAndFlush"]
     T -->|写回| W1
     T -->|写回| W2
 ```
@@ -184,15 +184,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[NioEventLoop.run 进入死循环] --> B[selector.select<br/>阻塞等待, 超时取最近定时任务时间]
+    A["NioEventLoop.run 进入死循环"] --> B["selector.select<br/>阻塞等待, 超时取最近定时任务时间"]
     B --> C{有 IO 事件 / 任务 / 定时器?}
-    C -->|IO 事件| D[processSelectedKeys<br/>OP_ACCEPT→OP_READ→OP_WRITE<br/>逐个处理 selectedKeys]
-    C -->|普通任务| E[runAllTasks<br/>执行 taskQueue 中跨线程提交的任务<br/>受 ioRatio 时间预算约束]
-    C -->|定时任务| F[处理 scheduledTaskQueue<br/>如 IdleStateHandler 超时检测]
-    D --> G[读事件 → ByteBuf 累积 →<br/>触发 ChannelPipeline 入站传播]
-    G --> H[Handler 处理 / 业务线程池异步化]
+    C -->|IO 事件| D["processSelectedKeys<br/>OP_ACCEPT→OP_READ→OP_WRITE<br/>逐个处理 selectedKeys"]
+    C -->|普通任务| E["runAllTasks<br/>执行 taskQueue 中跨线程提交的任务<br/>受 ioRatio 时间预算约束"]
+    C -->|定时任务| F["处理 scheduledTaskQueue<br/>如 IdleStateHandler 超时检测"]
+    D --> G["读事件 → ByteBuf 累积 →<br/>触发 ChannelPipeline 入站传播"]
+    G --> H["Handler 处理 / 业务线程池异步化"]
     E --> I{任务执行超时?}
-    I -->|是| J[记录 warn 日志<br/>防止任务饿死 IO 事件]
+    I -->|是| J["记录 warn 日志<br/>防止任务饿死 IO 事件"]
     I -->|否| B
     F --> B
     H --> B
@@ -433,16 +433,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[客户端发起调用] --> B[生成 requestId, 注册 Promise]
-    B --> C[序列化 + 编码 → writeAndFlush]
+    A["客户端发起调用"] --> B["生成 requestId, 注册 Promise"]
+    B --> C["序列化 + 编码 → writeAndFlush"]
     C --> D{超时定时器 3s}
-    D -->|超时| E[清理 requestId, 触发重试判断]
-    D -->|正常| F[收到响应 → 按 requestId 唤醒]
+    D -->|超时| E["清理 requestId, 触发重试判断"]
+    D -->|正常| F["收到响应 → 按 requestId 唤醒"]
     E --> G{重试次数 < 3 且幂等?}
     G -->|是| B
-    G -->|否| H[抛出 RPC 异常 / 触发熔断]
-    F --> I[反序列化 → 返回业务结果]
-    H --> J[连续失败 → 熔断半开探测]
+    G -->|否| H["抛出 RPC 异常 / 触发熔断"]
+    F --> I["反序列化 → 返回业务结果"]
+    H --> J["连续失败 → 熔断半开探测"]
     J -->|探测成功| A
 ```
 

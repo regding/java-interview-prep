@@ -154,16 +154,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[follower 定期从 leader 拉取数据] --> B{落后超过<br/>replica.lag.time.max.ms 默认30s?}
-    B -- 否 --> C[留在 ISR 正常同步]
-    B -- 是 --> D[从 ISR 中踢出该慢副本]
+    A["follower 定期从 leader 拉取数据"] --> B{落后超过<br/>replica.lag.time.max.ms 默认30s?}
+    B -- 否 --> C["留在 ISR 正常同步"]
+    B -- 是 --> D["从 ISR 中踢出该慢副本"]
     D --> E{ISR 数量低于 min.insync.replicas?}
-    E -- 是 --> F[broker 拒绝写入<br/>NotEnoughReplicasException]
-    E -- 否 --> G[继续接受写入 只等 ISR 内副本确认]
-    C --> H[leader 推进 HW<br/>HW = ISR 中最小的 LEO]
-    H --> I[消费者只能读到 HW 之前的数据]
+    E -- 是 --> F["broker 拒绝写入<br/>NotEnoughReplicasException"]
+    E -- 否 --> G["继续接受写入 只等 ISR 内副本确认"]
+    C --> H["leader 推进 HW<br/>HW = ISR 中最小的 LEO"]
+    H --> I["消费者只能读到 HW 之前的数据"]
     D --> J{慢副本重新追上?}
-    J -- 是 --> K[重新加回 ISR]
+    J -- 是 --> K["重新加回 ISR"]
     J -- 否 --> D
 ```
 
@@ -273,25 +273,25 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[rebalance 触发条件] --> B[消费者加入 / 离开 / 崩溃]
-    A --> C[订阅 topic 变化]
-    A --> D[分区数变化]
-    A --> E[心跳或处理超时被踢<br/>max.poll.interval.ms 默认5min]
-    B --> F[组协调器感知成员变更]
+    A["rebalance 触发条件"] --> B["消费者加入 / 离开 / 崩溃"]
+    A --> C["订阅 topic 变化"]
+    A --> D["分区数变化"]
+    A --> E["心跳或处理超时被踢<br/>max.poll.interval.ms 默认5min"]
+    B --> F["组协调器感知成员变更"]
     C --> F
     D --> F
     E --> F
     F --> G{rebalance 协议}
-    G -- EAGER 旧协议 --> H[全体消费者停止消费<br/>stop-the-world]
-    G -- COOPERATIVE 2.4+ --> I[增量协作 只回收需要重分配的分区]
-    H --> J[组内 leader 计算新分配<br/>range / roundrobin / sticky]
+    G -- EAGER 旧协议 --> H["全体消费者停止消费<br/>stop-the-world"]
+    G -- COOPERATIVE 2.4+ --> I["增量协作 只回收需要重分配的分区"]
+    H --> J["组内 leader 计算新分配<br/>range / roundrobin / sticky"]
     I --> J
-    J --> K[广播分配结果给所有成员]
-    K --> L[分区移交 旧消费者让出分区<br/>期间可能重复消费]
-    L --> M[各消费者从新位点恢复消费]
-    M --> N[优化：静态成员 group.instance.id<br/>重启不触发 rebalance]
-    M --> O[优化：调大 max.poll.interval.ms<br/>处理慢不被误杀]
-    M --> P[优化：滚动发布 + 优雅停机 close]
+    J --> K["广播分配结果给所有成员"]
+    K --> L["分区移交 旧消费者让出分区<br/>期间可能重复消费"]
+    L --> M["各消费者从新位点恢复消费"]
+    M --> N["优化：静态成员 group.instance.id<br/>重启不触发 rebalance"]
+    M --> O["优化：调大 max.poll.interval.ms<br/>处理慢不被误杀"]
+    M --> P["优化：滚动发布 + 优雅停机 close"]
 ```
 
 ### 5.3 位移提交
@@ -356,18 +356,18 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph 生产者侧
-        P1[acks=all 所有 ISR 副本确认] --> P2[retries 重试发送]
-        P2 --> P3[幂等生产者 PID + seq 防重试重复]
-        P3 --> P4[发送失败兜底 本地消息表 / Outbox]
+    subgraph "生产者侧"
+        P1["acks=all 所有 ISR 副本确认"] --> P2["retries 重试发送"]
+        P2 --> P3["幂等生产者 PID + seq 防重试重复"]
+        P3 --> P4["发送失败兜底 本地消息表 / Outbox"]
     end
     subgraph Broker 侧
-        B1[replication.factor=3 三副本] --> B2[min.insync.replicas=2 ISR 不足拒绝写入]
-        B2 --> B3[unclean.leader.election.enable=false<br/>禁止落后副本当选]
+        B1["replication.factor=3 三副本"] --> B2["min.insync.replicas=2 ISR 不足拒绝写入"]
+        B2 --> B3["unclean.leader.election.enable=false<br/>禁止落后副本当选"]
     end
-    subgraph 消费者侧
-        C1[先处理后提交位移 at-least-once] --> C2[消费端幂等 唯一键 / 状态机]
-        C2 --> C3[事务场景 read_committed 不见未提交]
+    subgraph "消费者侧"
+        C1["先处理后提交位移 at-least-once"] --> C2["消费端幂等 唯一键 / 状态机"]
+        C2 --> C3["事务场景 read_committed 不见未提交"]
     end
     P4 --> B1
     B3 --> C1
