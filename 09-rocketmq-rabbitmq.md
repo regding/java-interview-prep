@@ -45,7 +45,7 @@ Producer ──▶ Broker（主从一组，Master 负责读写，Slave 热备/�
 
 - **Producer**：发消息方，启动时从 NameServer 拉取 topic 路由（broker 地址列表），**直连 Broker** 发送（不经过任何中转节点），支持故障转移（发送失败换 broker 重试）；
 - **Consumer**：消费方，同样直连 Broker 拉取；同一个消费组（ConsumerGroup）内集群消费时消息被瓜分，不同组互不影响（发布订阅）；
-- **Broker**：消息存储与投递的执行者，主从成组（Master/Slave），存储全部消息；定时向 NameServer 心跳上报（**默认 30s 一次**），NameServer 检测到 broker 长时间未心跳会剔除其路由（具体剔除阈值与版本相关，约 2 分钟量级(待核实)）；
+- **Broker**：消息存储与投递的执行者，主从成组（Master/Slave），存储全部消息；定时向 NameServer 心跳上报（**默认 30s 一次**，`registerNameServerPeriod=30000`）；NameServer 检测到 broker 长时间未心跳会剔除其路由（**默认 2 分钟**，`DEFAULT_BROKER_CHANNEL_EXPIRED_TIME=120000`，即连续 2 分钟无心跳则路由失效）；
 - **NameServer**：纯路由注册中心，**无状态、节点间不通信、不持久化任何数据**——任何一个 NameServer 挂掉不影响已建立连接的 Producer/Consumer，只有"新 topic 路由发现"受影响。这是 RocketMQ 高可用的第一层设计。
 
 ### 1.2 为什么不用 ZooKeeper
@@ -112,7 +112,7 @@ flowchart TD
 
 ### 2.2 刷盘策略与 mmap 零拷贝
 
-- **刷盘两档**：同步刷盘（SYNC_FLUSH：消息写入内存映射区后**立即 fsync 落盘**才返回，单笔延迟高、不丢）；异步刷盘（ASYNC_FLUSH：写入页缓存即返回，后台定时批量刷盘，默认间隔约 1s(待核实)，宕机最多丢一个刷盘间隔的数据）。生产默认异步刷盘；
+- **刷盘两档**：同步刷盘（SYNC_FLUSH：消息写入内存映射区后**立即 fsync 落盘**才返回，单笔延迟高、不丢）；异步刷盘（ASYNC_FLUSH：写入页缓存即返回，后台定时批量刷盘，**CommitLog 默认刷盘间隔 `flushIntervalCommitLog = 500ms`（`flushCommitLogTimed=true`），ConsumeQueue 为 1000ms**，宕机最多丢一个刷盘间隔的数据）。生产默认异步刷盘；
 - **mmap（内存映射）**：CommitLog 文件通过 `MappedByteBuffer` 映射到进程地址空间，**写消息 = 写内存映射区**（OS 负责回写磁盘），避免 read/write 系统调用与用户态拷贝——这是与 Kafka 页缓存方案同源的思路（Kafka 用 sendfile 管读、RocketMQ 用 mmap 管写）；
 - **读路径零拷贝**：消费读消息时，CommitLog 数据从页缓存直接经 `sendfile`/`transferTo` 送到 socket（Netty 传输），不经过用户态堆（开启 `transientStorePoolEnable` 后写路径还可用堆外内存池，进一步减少 GC 压力）；
 - 对比记忆：**Kafka = 页缓存 + sendfile（读写都不碰 JVM 堆）；RocketMQ = mmap 写 + 页缓存读 + sendfile；RabbitMQ = Erlang 进程内存（队列在内存，落盘是镜像）**——存储哲学的差异决定了吞吐量级。
@@ -155,8 +155,8 @@ RocketMQ 事务消息解决「本地事务与发消息不能原子」的问题�
 ② Producer 执行本地事务（写库等）
 ③ 本地事务成功 → send 提交(commit)  → 半消息转正，投递到真实 topic
    本地事务失败 → 回滚(rollback)     → 半消息删除
-④ 若 ②③ 之间 Producer 崩溃/超时：Broker 定时回查 Producer（默认间隔 60s，
-   最多 15 次(待核实)，通过 check 接口问"这个事务到底成没成"），
+④ 若 ②③ 之间 Producer 崩溃/超时：Broker 定时回查 Producer（首次回查延迟 `transactionTimeOut=6s`，之后默认间隔 `transactionCheckInterval=30s`，
+   最多 **15 次**（`transactionCheckMax=15`），通过 check 接口问"这个事务到底成没成"），
    按回查结果 commit/rollback
 ```
 
@@ -241,10 +241,10 @@ sequenceDiagram
 
 ### 4.2 延迟消息：18 级延迟与实现
 
-- **18 个延迟级别**（`messageDelayLevel`，可配置）：1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h，对应 level 1~18（`setDelayTimeLevel(3)` = 10s）。**只能选预设级别，不能任意秒数**（5.x 支持自定义延迟时间(待核实)）；
+- **18 个延迟级别**（`messageDelayLevel`，可配置）：1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h，对应 level 1~18（`setDelayTimeLevel(3)` = 10s）。**4.x 只能选预设级别，不能任意秒数**；**5.0.0 引入 Timer Message（RIP-28，`timerWheelEnable=true`，`timerMaxDelaySec=3600*24*3`，精度 `timerPrecisionMs=1000`），支持任意延迟时间**，不再受 18 级限制；
 - **实现原理（面试核心）**：延迟消息发送时**不直接进目标 topic**，而是写入专门的延迟 topic（`SCHEDULE_TOPIC_XXXX`，按延迟级别分 18 个 queue）；Broker 的 **ScheduleMessageService 定时任务**周期性扫描这些延迟队列，**到期的消息再投递到真实 topic 的 queue**——消费者感知不到延迟过程；
 - 为什么用"定时扫描"而不是"每条消息一个定时器"：延迟消息本质是**批量到期**（同级别的到期时间接近），轮询扫描 18 个队列的代价远小于海量定时器；级别粒度就是"时间桶"的粒度；
-- **时间轮（TimerWheel）的关联**：面试常把延迟消息与时间轮一起考——Netty 的 HashedWheelTimer 是通用时间轮实现（精度 = tick 粒度，适合大量短延迟任务）；RocketMQ 的 18 级方案本质是**静态时间桶 + 轮询**，5.x 的定时消息实现引入了更精细的调度（具体实现细节各版本有差异，讲清"时间桶 + 扫描投递"的主干即可，细节标注(待核实)）；
+- **时间轮（TimerWheel）的关联**：面试常把延迟消息与时间轮一起考——Netty 的 HashedWheelTimer 是通用时间轮实现（精度 = tick 粒度，适合大量短延迟任务）；RocketMQ 4.x 的 18 级方案本质是**静态时间桶 + 轮询**；5.0 的 Timer Message 用更精细的时间轮（`TimerWheel` 实现，默认精度 1s）支持任意时刻——讲清"时间桶 + 扫描投递"的主干即可，版本间实现细节差异不影响面试要点；
 - **工程坑**：延迟级别配置改**重启前要确认存量消息的映射**（改 messageDelayLevel 会影响已投递消息的到期映射）；延迟消息消费失败重试会**再次进入延迟队列**（重试次数也按延迟级别递增）——排查"消息怎么越来越晚"时先想到这层。
 
 ### 本节高频面试题
@@ -268,14 +268,14 @@ sequenceDiagram
 | 广播消费 | 组内每个消费者都消费全量消息 | 每个消费者独立消费所有 queue | 本地缓存刷新、配置下发、指标采集 |
 
 - **消费位点**：集群模式下位点按「group + topic + queue」记录在 broker（`consumerOffset.json`）；广播模式下位点存本地文件——**广播消费的位点会随机器丢失**（换机器从头消费），慎用；
-- **推还是拉**：RocketMQ 是"长轮询拉模式"（consumer 向 broker 拉，broker 无消息时挂起请求最多 15s(待核实) 再返回空），既有拉的背压优势，又有推的及时性——对比 RabbitMQ 的推模式（prefetch 控速）。
+- **推还是拉**：RocketMQ 是"长轮询拉模式"（consumer 向 broker 拉，broker 无消息时挂起请求最多 15s（`BROKER_SUSPEND_MAX_TIME_MILLIS=15000`）再返回空），既有拉的背压优势，又有推的及时性——对比 RabbitMQ 的推模式（prefetch 控速）。
 
 ### 5.2 重试与死信队列
 
 - **消费失败重试**：集群消费失败的消息进入**重试队列** `%RETRY%<group>`（每个消费组一个，18 个 queue 对应 18 个延迟级别），**按延迟级别递增**重投（第 1 次失败 1s 后重试、第 2 次 5s……），默认最多重试 16 次；
 - **死信队列**：重试耗尽的消息进入 `%DLQ%<group>`，**不再自动消费**，只能人工/管理台介入（重投或丢弃）。生产规范：DLQ 必须监控告警（有消息 = 有 bug 或下游故障）；
 - **消费幂等**：RocketMQ 默认 at-least-once（重试、rebalance 移交、位点回退都会导致重复消费），**业务必须幂等**（唯一键/状态机）——这是所有 MQ 的共性，面试必答；
-- 重试与死信的坑：**顺序消息的重试是"阻塞重试"**（不跳队，卡住整个队列）；广播消费失败**不重试**（各自为政）；重试队列消息的 tag 处理要注意（重试消息的 tag 可能被重置，按 tag 过滤的消费者要小心(待核实)）。
+- 重试与死信的坑：**顺序消息的重试是"阻塞重试"**（不跳队，卡住整个队列）；广播消费失败**不重试**（各自为政）；重试队列消息的 tag 处理要注意（重试消息进入 `%RETRY%group` 时 topic 变更、原 tag 仍保留在消息属性里，但消费组订阅关系按重试 topic 走，按原 tag 过滤的消费者要特别小心——建议重试消费用通配订阅或按消息属性里的原 tag 判断）。
 
 > 图示：消费失败重试与死信队列流转
 
@@ -336,7 +336,7 @@ flowchart TD
 ### 本节高频面试题
 
 **Q9：消费组从 3 个实例扩到 6 个，堆积会自动消化吗？**
-解答：会，但有前提：queue 数 ≥ 6。集群消费按 queue 分配，新增实例会接管一部分 queue（触发 rebalance，RocketMQ 的 rebalance 是客户端周期性的（默认 20s 一次(待核实)），期间该 queue 消费暂停几十秒）；若 queue 数只有 4，第 5、6 个实例空转。面试补充：**加 queue 对存量积压无效**（新 queue 从当前位点开始），所以扩容消费能力要在设计期把 queue 数定足（经验：queue 数 ≥ 预期最大消费者数）。
+解答：会，但有前提：queue 数 ≥ 6。集群消费按 queue 分配，新增实例会接管一部分 queue（触发 rebalance，RocketMQ 的 rebalance 是客户端周期性的（默认 `rebalance.waitInterval=20000`，即 20s 一次），期间该 queue 消费暂停几十秒）；若 queue 数只有 4，第 5、6 个实例空转。面试补充：**加 queue 对存量积压无效**（新 queue 从当前位点开始），所以扩容消费能力要在设计期把 queue 数定足（经验：queue 数 ≥ 预期最大消费者数）。
 面试官追问：rebalance 会导致重复消费吗？——答：会。queue 移交瞬间，旧消费者可能已拉取未提交位点，新消费者从旧位点继续 → 重复。消费端幂等兜底；RocketMQ 的位点提交是「拉取后本地缓存、定期上报」，窗口比 Kafka 更粗，所以**幂等是硬要求**。
 
 **Q10：DLQ 里积累了大量消息，你怎么处理？**
@@ -387,7 +387,7 @@ flowchart TD
 1. **生产者 confirm（publisher confirms）**：`channel.confirmSelect()` 后每条消息 broker 落盘（持久化队列）即回 ack；未确认/超时/nack 的消息要重发——**confirm 是生产者侧不丢的根基**；
 2. **消费者手动 ack**：`basicAck`（成功）/ `basicNack` / `basicReject`（失败，可 requeue）——自动 ack 模式下消费者崩溃即丢（消息已从队列删除）；手动 ack + 失败不 requeue 进死信，才是可靠消费；
 3. **prefetch（basicQos）**：限制消费者未 ack 的最大消息数，防止"推模式"把消费者打爆；配合手动 ack 实现背压；
-4. **Quorum 队列（3.8+）**：基于 Raft 复制的队列（默认 3 副本？可配 5(待核实)），**强一致 + 自动故障转移**，取代了镜像队列成为生产推荐（镜像队列在 3.13 标记废弃(待核实)）。
+4. **Quorum 队列（3.8+）**：基于 Raft 复制的队列（**默认 3 副本**，`quorum_queue.initial_cluster_size=3`，可配），**强一致 + 自动故障转移**，取代了镜像队列成为生产推荐（**镜像队列在 3.13（2024-03）标记废弃、4.0 正式移除**）。
 
 ### 6.4 镜像队列 → Quorum 队列的演进
 
@@ -440,7 +440,7 @@ flowchart TD
 面试官追问：confirm 和事务（txSelect）区别？——答：confirm 是异步确认、吞吐高、生产推荐；AMQP 事务（txSelect/txCommit）同步阻塞、吞吐极低、基本被淘汰——这个对比能体现"懂演进"。
 
 **Q12：TTL+DLX 实现延迟消息有什么坑？为什么推荐延迟插件？**
-解答：核心坑：RabbitMQ 只检查**队头消息**的 TTL，队头是长 TTL 消息时，后面短 TTL 消息**不会按时过期**（延迟被队头阻塞，实际延迟 = 队头剩余时间）；且同队列只能设一个 TTL。延迟插件为每条消息独立计算到期时间（内部排序结构），精度与公平性都好。代价：插件用 Mnesia 存储，**延迟消息量大时内存/性能受限**，且插件队列不参与普通镜像/Quorum 语义(待核实)。面试结论：小延迟量用插件，大延迟量换 RocketMQ/定时任务。
+解答：核心坑：RabbitMQ 只检查**队头消息**的 TTL，队头是长 TTL 消息时，后面短 TTL 消息**不会按时过期**（延迟被队头阻塞，实际延迟 = 队头剩余时间）；且同队列只能设一个 TTL。延迟插件为每条消息独立计算到期时间（内部排序结构），精度与公平性都好。代价：插件用 Mnesia 存储，**延迟消息量大时内存/性能受限**，且延迟插件队列**基于经典队列、不参与 Quorum 复制语义**（高可用要另配镜像/集群）。面试结论：小延迟量用插件，大延迟量换 RocketMQ/定时任务。
 
 ---
 
@@ -507,7 +507,7 @@ flowchart TD
 解答（架构题模板）：接入层（SDK/协议适配，统一发送与消费 API，治理生产者与消费组）→ 路由与治理层（topic 生命周期、配额、鉴权、租户隔离）→ 存储层（选型：Kafka/RocketMQ 或自研，消息体与索引分离）→ 消费层（消费组管理、重试/死信、延迟投递、消息轨迹）→ 可观测与运维（监控告警、积压治理工具、容量规划）→ 对账与补偿（最终一致性兜底）。再补一句：**消息平台的难点不在"发消息"，在"治理"**（topic 规范、消费组生命周期、故障排查工具链）——这句话就是架构师认知。
 
 **Q23：RocketMQ 5.x 相比 4.x 有什么变化？迁移要注意什么？**
-解答：三个大变化：(1) **Controller 模式**：基于 Raft 的自动故障切换成为一等公民（4.x 的 Dledger 演进版），broker 集群管理更接近 Kafka KRaft；(2) **gRPC 协议**与新的客户端（4.x 的 remoting 协议继续兼容）；(3) **Pop 消费**：轻量消费模式（服务端记录消费进度，客户端无状态，适合弹性伸缩场景）与**任意延迟的定时消息**（不再只有 18 级）(待核实细节)。迁移注意：协议兼容性验证、消费组进度（consumerOffset）迁移、客户端版本升级灰度、5.x 的 controller 部署要单独规划（奇数节点）。
+解答：三个大变化（均自 5.0.0 引入）：(1) **Controller 模式**：基于 Raft 的自动故障切换成为一等公民（`broker/controller/ReplicasManager`，4.x 的 Dledger 演进版），broker 集群管理更接近 Kafka KRaft；(2) **gRPC 协议**与新的 proxy 模块（`ProxyStartup`），驱动 gRPC 客户端 API，4.x 的 remoting 协议继续兼容；(3) **Pop 消费**：轻量消费模式（`PopMessageProcessor` 服务端记录消费进度，客户端无状态，适合弹性伸缩场景）与**任意延迟的 Timer Message**（RIP-28，不再只有 18 级）。迁移注意：协议兼容性验证、消费组进度（consumerOffset）迁移、客户端版本升级灰度、5.x 的 controller 部署要单独规划（奇数节点）。
 面试官追问：Pop 消费和普通 Push 消费有什么区别？——答：Push 模式的消费进度在客户端（每个实例维护位点，扩容/缩容要 rebalance 交接）；Pop 模式把位点管理收到服务端（客户端无状态，拿一条记一条），弹性伸缩零交接成本，代价是服务端状态与额外一轮请求。**面试话术：Pop 是"把消费位点从客户端收编到服务端"，解决的是无状态化与弹性**。
 
 **Q24：事务消息回查次数用完了（15 次）还没结论，会发生什么？**

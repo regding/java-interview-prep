@@ -591,3 +591,7 @@ flowchart TB
 | **AI SLA** | P95 TTFT < 2s, 成功率 > 99.5%, 单次成本 < ¥0.1 |
 | **成本控制** | 模型路由 + Semantic Cache + Prompt 精简 + 预算告警 |
 | **Context Window** | Prompt 压缩 + 滑动窗口 + RAG 分层 + Map-Reduce |
+
+---
+
+[📖 返回目录](README.md) · [⬅️ 上一章](30-data-api-design.md) · [➡️ 下一章](32-emerging-trends.md)

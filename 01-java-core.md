@@ -433,8 +433,8 @@ flowchart LR
 
 ### 7.4 并发革命：虚拟线程与结构化并发（详见 03-concurrency.md 第 9 节）
 
-- 虚拟线程（JDK 19 预览 / **21 转正**）：JVM 调度的轻量线程，阻塞时自动从载体线程卸载（unmount），百万级并发成为可能；适合 IO 密集；
-- 结构化并发：`StructuredTaskScope` 让并发任务的「生命周期跟随代码块」、统一错误处理与取消（JDK 21 孵化，后续版本推进，转正版本见 03 文件）。
+- 虚拟线程（JDK 19 预览 / **21 转正 JEP 444**）：JVM 调度的轻量线程，阻塞时自动从载体线程卸载（unmount），百万级并发成为可能；适合 IO 密集；**JDK 24 JEP 491 修复了 synchronized 导致的 pinning**（见 03 章 §9.1），虚拟线程进入 synchronized 不再钉死载体线程；
+- 结构化并发：`StructuredTaskScope` 让并发任务的「生命周期跟随代码块」、统一错误处理与取消；**JDK 19 孵化 → 21/22/23/24 四次预览（JEP 453/462/480/499）→ 25 第五次预览（JEP 505），截至 Java 25 仍是预览、未转正**；与之配套的 `ScopedValue` 已在 **Java 25 JEP 506 转正**为标准 API。
 
 ### 7.5 版本时间线（JDK 8 → 25）
 
@@ -450,8 +450,11 @@ flowchart LR
 | 16 | record 转正、Stream.toList()、强封装 JDK 内部（JEP 396） |
 | 17 (LTS) | sealed 转正、switch 模式匹配预览 |
 | 18-20 | jwebserver、向量 API 孵化、虚拟线程预览（19） |
-| 21 (LTS) | **虚拟线程转正（JEP 444）**、switch/record 模式匹配转正、SequencedCollection（JEP 431）、字符串模板预览 |
-| 22-25 | 字符串模板/unnamed variables 预览推进；24：Compact Object Headers 实验（JEP 450）、原始类型模式匹配预览；25：Valhalla 原始类型方向继续演进（精确清单待核实） |
+| 21 (LTS) | **虚拟线程转正（JEP 444）**、switch/record 模式匹配转正、SequencedCollection（JEP 431）、String Templates 第二预览（JEP 459） |
+| 22 | Unnamed Variables & Patterns 转正（JEP 456）、Foreign Function & Memory API 转正（JEP 454）、Stream Gatherers 预览（JEP 461） |
+| 23 | Markdown 文档注释（JEP 467）、ZGC 分代默认开启（JEP 474）；**String Templates 在 23 被彻底撤回（设计废弃，从未转正）**；Primitive Types in Patterns 预览（JEP 455） |
+| 24 | **Compact Object Headers 实验（JEP 450）**、**JEP 491 修复虚拟线程 synchronized pinning**、Class-File API 转正（JEP 484）、Stream Gatherers 转正（JEP 485）、Primitive Types in Patterns 第二预览（JEP 488） |
+| 25 (LTS) | **Compact Object Headers 转正（JEP 519，原 24 实验）**、**ScopedValue 转正（JEP 506）**、Module Import 声明转正（JEP 511）、Flexible Constructor Bodies 转正（JEP 513）；Structured Concurrency 第五次预览（JEP 505）、Primitive Types in Patterns 第三预览（JEP 507）——两者仍处预览；Valhalla 仅落地「模式中原始类型」预览，值类型/特化泛型尚未到来 |
 
 > 图示：Java 8 → 25 新特性演进时间线（主线 + 预览支线）
 
@@ -460,13 +463,14 @@ flowchart LR
     J8[Java 8 2014<br/>Lambda/Stream<br/>Optional/java.time] --> J9["Java 9 2017<br/>JPMS 模块化"]
     J9 --> J11["Java 11 LTS<br/>ZGC 实验<br/>HttpClient 转正"]
     J11 --> J17["Java 17 LTS<br/>sealed 转正<br/>强封装 JDK 内部"]
-    J17 --> J21["Java 21 LTS<br/>虚拟线程转正<br/>record/switch 模式匹配<br/>SequencedCollection"]
-    J21 --> J25["Java 25<br/>Valhalla 原始类型<br/>方向继续演进"]
+    J17 --> J21["Java 21 LTS<br/>虚拟线程转正 JEP 444<br/>record/switch 模式匹配<br/>SequencedCollection"]
+    J21 --> J24["Java 24<br/>Compact Object Headers JEP450<br/>JEP491 修 pinning<br/>原始类型模式匹配预览"]
+    J24 --> J25["Java 25 LTS<br/>Compact Object Headers 转正<br/>ScopedValue 转正<br/>结构化并发仍第5预览"]
     J8 -.-> J10["Java 10<br/>var 局部变量推断"]
     J9 -.-> J14["Java 14<br/>record 预览<br/>instanceof 模式预览"]
     J11 -.-> J15["Java 15<br/>偏向锁废弃 JEP 374<br/>ZGC/Shenandoah 转正"]
     J17 -.-> J19["Java 19<br/>虚拟线程预览<br/>向量 API 孵化"]
-    J21 -.-> J24["Java 24<br/>Compact Object Headers<br/>原始类型模式匹配预览"]
+    J21 -.-> J23["Java 23<br/>String Templates 撤回<br/>Primitive Types 预览"]
 ```
 
 ### 7.6 本节高频面试题

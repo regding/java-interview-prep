@@ -1,0 +1,176 @@
+[📖 返回目录](README.md) · [⬅️ 上一章](31-ai-system-architecture.md) · [➡️ 回到目录](README.md)
+
+# 32 · 2025-2026 新兴面试热点（资深向）
+
+> 适用对象：10+ 年经验的资深工程师 / 架构师候选人。本章不堆新名词，而是把近一两年面试里**反复出现、但传统八股覆盖不到**的五个热点讲透：① 虚拟线程的生产实践（不只是"会写"，而是"敢上生产"）；② AI 编码助手如何真正进入工程工作流；③ 可观测性新趋势（OpenTelemetry / eBPF / 持续剖析）；④ Java + AI 的集成范式与 MCP 协议；⑤ Java 25 LTS 的面试要点。落点：能结合自己项目讲出"踩过什么坑、怎么决策"，而不是复述文档。
+
+**TL;DR 本章学习要点**
+
+1. **虚拟线程不是银弹**：JDK 24（JEP 491）修复了 `synchronized` 导致的 pinning，但 **IO 密集型**才收益显著，**CPU 密集型 / 大量 native 栈帧 / `synchronized` 内长时间阻塞**仍会 pin；迁移套路是"先把线程池换成 `Executors.newVirtualThreadPerTaskExecutor()`，再用 JFR 看 `jdk.VirtualThreadPinned` 事件收尾"，而不是直接全量替换；
+2. **AI 编码助手是"结对程序员"不是"代写"**：资深用法是让它做样板生成、测试补全、代码审查、重构建议，关键决策与架构仍由人把控；面试要能讲清"我怎么 review AI 生成的代码、怎么防止它引入隐性 bug"；
+3. **可观测性正在从"埋点 + 日志"走向"标准协议 + 内核态 + 持续剖析"**：OpenTelemetry 已成事实标准（trace/metric/log 统一）；eBPF 让无侵入的内核级观测成为可能；持续剖析（Continuous Profiling）把"上线后才发现慢"变成"实时火焰图"；
+4. **Java + AI 的工程范式是"门面 + 工具调用 + RAG"**，MCP（Model Context Protocol）把"模型连工具"标准化（2024-11 初版、2025-06 修订），让 Agent 复用同一套工具协议，避免每个模型各写一套适配器；
+5. **Java 25（2025-09 LTS）面试要点**：ScopedValue 转正（JEP 506）、Compact Object Headers 转正（JEP 519，降内存开销）、Generational Shenandoah 转正（JEP 521）、结构化并发仍**第五次预览**（JEP 505，未转正）——能讲清"哪个转正、哪个还在预览"才是版本体感。
+
+---
+
+### 📑 本章目录
+
+- [1. 虚拟线程的生产实践](#1-虚拟线程的生产实践)
+- [2. AI 编码助手与工程工作流](#2-ai-编码助手与工程工作流)
+- [3. 可观测性新趋势：OTel / eBPF / 持续剖析](#3-可观测性新趋势otel--ebpf--持续剖析)
+- [4. Java + AI 集成与 MCP 协议](#4-java--ai-集成与-mcp-协议)
+- [5. Java 25 LTS 面试要点](#5-java-25-lts-面试要点)
+- [考点速查表](#考点速查表)
+
+---
+
+## 1. 虚拟线程的生产实践
+
+### 1.1 什么时候该上、什么时候别上
+
+- **收益场景**：IO 密集型、并发连接多但每个请求阻塞时间短（Web 服务、RPC 网关、消息消费）。虚拟线程让"一个请求一个线程"的写法在百万级并发下依然廉价（载体线程只是平台线程，数量≈CPU 核数）。
+- **无效甚至有害场景**：
+  - **CPU 密集型**：虚拟线程不增加算力，反而因调度增加开销；
+  - **`synchronized` 内长时间阻塞**：JDK 24 前会 **pinning**（载体线程被钉死，虚拟线程无法卸载，退化为平台线程阻塞）；JDK 24（JEP 491）已修复 `synchronized` 的 pinning，但 **`ReentrantLock` 之外的 native 方法 / JNI / 第三方库里的 `synchronized` 长时间持有**仍可能 pin；
+  - **大量 `ThreadLocal` 滥用**：虚拟线程数量巨大，ThreadLocal 内存放大明显，应改用 **ScopedValue**（见 §5）。
+
+### 1.2 迁移套路（面试能讲清步骤）
+
+```
+旧：ExecutorService pool = Executors.newFixedThreadPool(200);
+新：ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor();  // JDK 21+
+```
+1. **先换执行器**：把业务线程池替换成 `newVirtualThreadPerTaskExecutor()`，代码改动极小；
+2. **用 JFR 验证**：开启 JFR，关注 `jdk.VirtualThreadPinned` 事件（pinning 次数与时长），找出仍会 pin 的代码路径；
+3. **把 `synchronized` 改 `ReentrantLock`**（JDK 24 前必要；24+ 后 `synchronized` 已不 pin，但长阻塞仍建议换锁以便超时）；
+4. **移除无谓 ThreadLocal**：换 ScopedValue 或显式传参；
+5. **压测对比**：关注吞吐、P99 延迟、载体线程数（应远小于虚拟线程数）。
+
+### 1.3 面试高频题
+
+**Q1：虚拟线程是不是越多越好？会不会 OOM？**
+解答：虚拟线程本身内存开销极小（栈初始几 KB，按需增长），但**每个虚拟线程仍持有一个任务的对象图 + 可能的 ThreadLocal**，数量无节制仍会吃内存；更要警惕"虚拟线程里套 synchronized 长阻塞"导致载体线程被钉满、平台线程池耗尽——表现像"线程池打满"而不是"虚拟线程廉价"。结论：虚拟线程解放的是**并发数量的上限**，不是让你放弃对阻塞点、ThreadLocal、外部连接池的治理。
+
+**Q2：虚拟线程和响应式（WebFlux / Project Reactor）怎么选？**
+解答：两者目标都是"高并发下少占平台线程"，路径相反——虚拟线程是**把阻塞写法变廉价**（沿用命令式代码），响应式是**把阻塞消除**（全异步、背压、算子链）。选虚拟线程：团队熟悉命令式、IO 密集、不想引入响应式学习曲线；选响应式：需要背压精细控制、流式处理、与响应式生态（R2DBC / Kafka Reactive）深度整合。注意：**Spring Boot 3.2+ 已支持虚拟线程执行器**（`spring.threads.virtual.enabled=true` 让 Tomcat/Spring MVC 用虚拟线程处理请求），很多场景下虚拟线程能替代响应式达到相似并发收益，且代码更易懂——这也是近年"响应式退热、虚拟线程升温"的原因。
+
+---
+
+## 2. AI 编码助手与工程工作流
+
+### 2.1 资深工程师的真实用法（不是"让它写整个模块"）
+
+- **样板与重复代码**：DTO / 实体映射 / 脚手架 / 单测样板，生成后人工核对字段与边界；
+- **测试补全**：给定函数让助手补边界用例、异常路径（比手写好覆盖率高）；
+- **代码审查辅助**：让助手找潜在 NPE、并发隐患、资源未关闭、魔法数字；**最终由人拍板**，不盲信；
+- **重构建议**："把这段 if-else 抽成策略模式""这个方法循环依赖怎么解耦"——助手给方案，人做决策；
+- **文档与注释**：生成 API 文档草稿、复杂度说明。
+
+### 2.2 防坑：AI 生成的代码怎么 review
+
+- **隐性 bug 类型**：看似合理的错误 API 调用（ hallucinated API，调用的类/方法不存在或签名过期）、边界条件遗漏、并发线程安全问题、资源泄漏、过度设计；
+- **应对策略**：① 让助手**引用它用的 API 来源/版本**，对不熟悉的调用必查官方文档；② 关键逻辑要求**附单元测试**，测试过不了就说明它没真懂；③ 安全敏感代码（鉴权、加密、SQL）一律人工复审；④ 把"AI 生成的代码"当作**初级工程师的 MR**来 review，而不是信任产物。
+
+### 2.3 面试高频题
+
+**Q3：你们团队用 AI 编码助手后，代码质量和交付速度有什么变化？你怎么管控风险？**
+解答（话术框架）：效率上——样板/测试/文档提速明显，资深工程师把省下的时间投到架构与难点；质量上——**AI 不提升下限也不降低上限，它放大工程师本身的能力**，所以 review 标准不能降。管控：① 所有 AI 生成代码走正常 MR + CI + 人工 review；② 关键路径要求测试覆盖；③ 内部沉淀"哪些场景可信、哪些必须人工"（如加密/并发绝不盲信）；④ 知识库/RAG 把内部规范喂给助手，减少它乱编。结论是"AI 是杠杆，杠杆的支点还是工程师的判断力"。
+
+---
+
+## 3. 可观测性新趋势：OTel / eBPF / 持续剖析
+
+### 3.1 OpenTelemetry：从"三家各一套"到"一套标准"
+
+- **定位**：CNCF 毕业项目，统一 **Trace / Metric / Log** 三类信号的采集与导出（通过 OTLP 协议），后端可接 Prometheus、Jaeger、Tempo、商业 APM；
+- **价值**：摆脱厂商锁定（以前 New Relic / 各类 APM 各写 SDK）， instrumentation 一次、后端随意换；Java 有 **javaagent 无侵入接入**（自动埋点 Servlet / JDBC / Kafka / Redis），业务代码零改动；
+- **面试落点**：能讲清"为什么 OTel 取代各自 SDK"——标准化降低了接入与迁移成本，且 trace 与 metric 关联（exemplar）是排障关键。
+
+### 3.2 eBPF：内核态的无侵入观测
+
+- **能力**：在内核中挂载轻量程序，观测**网络、系统调用、文件 IO、调度**而不改应用代码、不需重启；
+- **Java 场景**：传统 APM 看不到的"GC 之外的停顿"——`syscall` 阻塞、锁竞争的内核态、网络重传、容器 CPU 限流（cfs quota throttled）——eBPF 工具（如 Pixie、Cilium Hubble、自研）能直接看；
+- **局限**：eBPF 看到的是**系统层**，Java 方法级火焰图仍需 async-profiler 这类用户态采样配合——两者互补。
+
+### 3.3 持续剖析（Continuous Profiling）
+
+- **传统痛点**：性能问题"上线后才发现慢"，临时开 profiler 又难复现；
+- **持续剖析**：**生产环境常驻低开销采样**（CPU / 内存分配 / 锁），自动生成火焰图，能回放"昨天 14:00 这段延迟尖刺是哪个方法吃的 CPU"；
+- **Java 主流**：async-profiler（CPU/alloc/lock 火焰图，低开销）、JFR（JDK Flight Recorder，内置、可连续记录）、以及 Pyroscope / OpenTelemetry 的 profiling 信号；
+- **面试落点**：能讲清"持续剖析 = 把性能调查从'事后救火'变成'持续可观测'"，并与 trace 关联（哪个 trace 对应哪段 CPU 热点）。
+
+### 3.4 面试高频题
+
+**Q4：你们怎么发现"接口偶发慢 200ms"这种问题？**
+解答：分层排查——① **Trace（OTel/Jaeger）** 看慢在哪一段 span（是 DB、RPC 还是自身）；② 若自身慢，开 **持续剖析火焰图** 看哪个方法吃 CPU / 是否锁竞争；③ 若内核态慢，上 **eBPF** 看 syscall 阻塞、网络重传、容器限流；④ 结合 **JFR** 看 GC/ safepoint 停顿。结论：现代排障是"trace 定位 + profiler 定量 + eBPF 补内核盲区"，而不是只盯日志和 CPU 曲线。
+
+---
+
+## 4. Java + AI 集成与 MCP 协议
+
+### 4.1 工程范式：门面 + 工具调用 + RAG
+
+- **门面封装**：Spring AI / LangChain4j 都已 GA（Spring AI 2025-05 1.0 GA、2026-06 到 2.0；LangChain4j 2025-05 1.0 GA、仍 1.x 维护线），但 API 仍在演进——**生产应在门面层做薄封装**，屏蔽框架升级时的接口变动；
+- **工具调用（Function Calling）**：把企业系统（订单、库存、CRM）暴露成工具，Agent 自主决定调用；Java 侧用 `@Tool` 注解声明，框架负责序列化与调度；
+- **RAG**：检索增强生成，把内部知识库向量化，问答时先检索再生成（详见 31 章）；Java 的 VectorStore 抽象（PGVector / Redis / Milvus）已成熟。
+
+### 4.2 MCP（Model Context Protocol）
+
+- **是什么**：Anthropic 提出的开放协议，**标准化"模型如何连接外部工具与数据源"**——类似"AI 世界的 USB-C"，让任何模型、任何工具都能即插即用，不必为每个模型各写一套适配器；
+- **版本**：**2024-11-05 初版规范发布，2025-06-18 重大修订**（引入更清晰的传输层、流式、Auth 规范）；
+- **为什么重要**：在没有 MCP 前，每接一个工具要写一次模型专属 glue code；MCP 让"工具提供方"和"模型使用方"解耦——工具按 MCP 暴露，模型按 MCP 调用，复用同一协议；
+- **Java 生态**：Spring AI / LangChain4j 均已支持 MCP client/server，可把现有 Spring Bean 直接暴露成 MCP 工具；
+- **面试落点**：能讲清"MCP 解决的是 AI 工具集成的标准化问题，类比 LSP 之于编辑器——让工具生态可组合"。
+
+### 4.3 面试高频题
+
+**Q5：如果让你给公司系统接一个 AI Agent，让它查订单状态、改库存，你怎么设计？**
+解答（架构话术）：① **工具层**：把"查订单/改库存"封装成 MCP 工具（带权限校验与审计），Agent 通过标准协议调用，不直接碰 DB；② **门面层**：用 Spring AI 的 `ChatClient` + `@Tool` 管理工具注册与调用，业务代码不耦合具体模型；③ **安全层**：工具调用必须鉴权、限流、留痕（Agent 误操作要可回溯）；④ **可观测层**：每次 LLM 调用记 trace + token 用量 + 工具调用链；⑤ **降级**：模型不可用时走规则引擎兜底。核心是"**Agent 只做决策编排，工具才是真相来源，所有写操作必须人在回路或强审计**"。
+
+---
+
+## 5. Java 25 LTS 面试要点
+
+### 5.1 哪些转正、哪些还在预览（版本体感的核心）
+
+| 特性 | JEP | 状态（Java 25） |
+|------|-----|----------------|
+| **ScopedValue** | JEP 506 | ✅ **转正（标准 API）** |
+| **Compact Object Headers** | JEP 519 | ✅ **转正**（24 实验 → 25 正式，降低对象头内存开销） |
+| **Generational Shenandoah** | JEP 521 | ✅ **转正**（24 实验 → 25 正式，低停顿 GC 更稳） |
+| **Module Import Declarations** | JEP 511 | ✅ 转正（单条 `import module` 引入整个模块 API） |
+| **Flexible Constructor Bodies** | JEP 513 | ✅ 转正 |
+| **Key Derivation Function API** | JEP 510 | ✅ 转正 |
+| **Structured Concurrency** | JEP 505 | ⚠️ **第五次预览，仍未转正** |
+| **Primitive Types in Patterns** | JEP 507 | ⚠️ 第三次预览（Valhalla 方向） |
+| **Vector API** | JEP 508 | ⚠️ 第十次孵化（仍孵化） |
+| **Stable Values** | JEP 502 | 🔶 预览（替代部分延迟初始化场景） |
+
+### 5.2 面试怎么答 Java 25
+
+- **能讲清"转正 vs 预览"的差异**：ScopedValue 已可生产使用（替代 ThreadLocal 的首选），结构化并发**仍预览、不建议生产强依赖**（API 还可能在第六次预览再改）；
+- **Compact Object Headers 的价值**：对象头从 128/96 位降到更小，海量小对象场景下**堆内存占用显著下降、GC 压力减轻**——这是"看似底层、实则影响吞吐"的点；
+- **Generational Shenandoah 转正**：低停顿 GC 走向成熟，对延迟敏感服务是利好；
+- **趋势判断**：Java 在"降低内存开销（Lilliput/Compact Headers）"和"并发模型现代化（虚拟线程/结构化并发/ScopedValue）"两条线上持续发力，面试能点出这两条主线。
+
+### 5.3 面试高频题
+
+**Q6：Java 25 相比 21，你最该关注哪几个变化？为什么？**
+解答：① **ScopedValue 转正**——终于有官方推荐的"方法间安全传值"替代 ThreadLocal，配合虚拟线程更自然；② **Compact Object Headers 转正**——对象头瘦身，内存与 GC 双收益；③ **Generational Shenandoah 转正**——低停顿 GC 可用；④ **结构化并发仍预览**——说明并发 API 还在打磨，生产先用虚拟线程 + `ExecutorService` 即可，别急着上 `StructuredTaskScope`。一句话：**25 是"内存与并发现代化"的 LTS，但并发新 API 还没完全定型**。
+
+---
+
+## 考点速查表
+
+| 热点 | 必会要点 | 易错点 |
+|------|---------|--------|
+| 虚拟线程 | JDK 24 JEP 491 修 pinning；IO 密集才收益；迁移先换执行器再看 JFR | 误以为"虚拟线程万能"——CPU 密集/长阻塞仍无效 |
+| AI 编码助手 | 杠杆而非代写；review 标准不降；关键路径要求测试 | 盲信 hallucinated API；安全/并发代码不复审 |
+| 可观测性 | OTel 统一 trace/metric/log；eBPF 补内核盲区；持续剖析常驻采样 | 只盯日志/CPU 曲线，不会用 trace+profiler 联动 |
+| MCP | 2024-11 初版 / 2025-06 修订；标准化"模型连工具" | 与 Function Calling 混淆（MCP 是协议层，FC 是模型能力） |
+| Java 25 LTS | ScopedValue/Compact Headers/Gen Shenandoah 转正；结构化并发仍第五次预览 | 误以为结构化并发已转正可生产强依赖 |
+
+> 本章为新增热点章节（2026-08 补充），内容随生态演进需定期复查。版本事实以 OpenJDK JEP 页面与各项目官方发布说明为准。
+
+[⬅️ 上一章](31-ai-system-architecture.md) · [📖 返回目录](README.md)

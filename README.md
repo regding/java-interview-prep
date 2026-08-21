@@ -82,6 +82,7 @@
 | [29-observability-sre.md](29-observability-sre.md) | OpenTelemetry/分布式追踪/日志架构/SLO-SLI/混沌工程/Postmortem |
 | [30-data-api-design.md](30-data-api-design.md) | 数据分层架构/湖仓一体/CDC/RESTful 深度/gRPC/GraphQL/API 治理 |
 | [31-ai-system-architecture.md](31-ai-system-architecture.md) | LLM 推理架构/RAG 全链路/Agent 架构模式/Java AI 生态/AI 系统陷阱 |
+| [32-emerging-trends.md](32-emerging-trends.md) | 虚拟线程生产实践/AI 编码协同/可观测性新趋势/Java+AI·MCP/Java 25 LTS 热点 |
 
 ## 三、学习路线图（资深向）
 
@@ -107,8 +108,8 @@
   21 云原生 → 22 工程实践 → 23 算法 → 24 软实力 → 25 真题 → 26 资源
 
 阶段六 架构进阶（决定架构师定级）
-  27 事件驱动+CQRS → 28 架构模式 → 29 可观测性/SRE → 30 数据架构+API → 31 AI 系统架构
-  ⬇ 自测：画 CQRS+Event Sourcing 全链路架构图 / 设计一个 RAG 系统并说明向量库选型理由
+  27 事件驱动+CQRS → 28 架构模式 → 29 可观测性/SRE → 30 数据架构+API → 31 AI 系统架构 → 32 新兴热点
+  ⬇ 自测：画 CQRS+Event Sourcing 全链路架构图 / 设计一个 RAG 系统并说明向量库选型理由 / 讲清虚拟线程生产迁移步骤与 Java 25 版本体感
 ```
 
 ## 四、资深/架构师面试的核心策略
@@ -154,5 +155,6 @@
 | [29-observability-sre.md](29-observability-sre.md) | 463 | 5 | ✅ |
 | [30-data-api-design.md](30-data-api-design.md) | 463 | 3 | ✅ |
 | [31-ai-system-architecture.md](31-ai-system-architecture.md) | 593 | 8 | ✅ |
+| [32-emerging-trends.md](32-emerging-trends.md) | 176 | 6 | ✅ |
 
-**合计**：31 章 + 总览，共 **14,300+ 行**（27-31 章新增约 2,478 行）；全库 **122+ 张 mermaid 流程图/时序图/状态机图**；**500+ 道面试题**（含详细解答与追问）。另有[「合并版-全部章节.md」](合并版-全部章节.md) 单文件版，方便连续阅读或转存。
+**合计**：32 章 + 总览，共 **14,700+ 行**（27-32 章新增约 2,650 行）；全库 **122+ 张 mermaid 流程图/时序图/状态机图**；**500+ 道面试题**（含详细解答与追问）。另有[「合并版-全部章节.md」](合并版-全部章节.md) 单文件版，方便连续阅读或转存。

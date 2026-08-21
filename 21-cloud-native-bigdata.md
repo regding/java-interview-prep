@@ -384,7 +384,7 @@ flowchart TD
 
 - **LangChain4j**：Java 版的 LLM 编排框架，对标 Python 的 LangChain：统一 LLM 供应商抽象（OpenAI/通义/文心/本地 Ollama）、对话记忆、工具调用（Function Calling）、RAG 组件（加载/切分/嵌入/检索）、AI Service（用注解声明式定义「用自然语言调用的方法」）；
 - **Spring AI**：Spring 官方 AI 框架，把 AI 能力做成 Spring 生态的一部分：`ChatClient`/`EmbeddingModel` 等 Bean 化、与 Spring Boot 配置体系整合、支持 VectorStore 抽象（PGVector/Redis/Milvus/Weaviate）、函数调用与 RAG 开箱即用；
-- 选型参考：已有 Spring 生态 → Spring AI（一致性最好）；需要 LangChain 生态的丰富组件（如多 agent、复杂 chain）→ LangChain4j；两者都在快速演进，生产项目要锁定版本并评估 API 稳定性（(待核实) 2025 年两个框架都还处于 1.x 早期，接口变动频繁，建议在门面层做薄封装）。
+- 选型参考：已有 Spring 生态 → Spring AI（一致性最好）；需要 LangChain 生态的丰富组件（如多 agent、复杂 chain）→ LangChain4j。两者都已 **GA 稳定**（Spring AI 2025-05 1.0 GA、2026-06 到 2.0 大版本；LangChain4j 2025-05 1.0 GA、仍 1.x 维护线），但 API 仍在演进，**生产项目要锁定版本并在门面层做薄封装**（屏蔽框架升级时的接口变动，避免业务代码被框架绑定）。
 
 ### 6.2 RAG：检索增强生成
 
